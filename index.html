@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Baseball">
+<meta name="theme-color" content="#1a3a6b">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>⚾ Hroši Brno</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Hippos blue → Hroši navy */
+  --hippos:#3d8ef0;
+  --hrosi:#0d1b2e;
+  --navy:#1a3a6b;
+  --navy-light:#234d8a;
+  --blue-mid:#2a6abf;
+  --sky:#e8f2ff;
+  --sky2:#d0e4ff;
+  --white:#ffffff;
+  --off-white:#f0f4fa;
+  --text:#1a2a4a;
+  --text2:#4a6080;
+  --text3:#8aa0bc;
+  --green:#22c55e;
+  --green-dark:#16a34a;
+  --red:#ef4444;
+  --orange:#f97316;
+  --yellow:#fbbf24;
+  --purple:#8b5cf6;
+  --card-bg:#ffffff;
+  --card-border:#dde8f7;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px);
+  --sar:env(safe-area-inset-right,0px);
+}
+html{height:100%;background:var(--off-white)}
+body{
+  min-height:100dvh;background:var(--off-white);
+  color:var(--text);font-family:'Nunito Sans',sans-serif;
+  display:flex;flex-direction:column;overflow:hidden;
+  padding-top:var(--sat);padding-left:var(--sal);padding-right:var(--sar);
+}
+
+/* ══ HEADER ══ */
+.hdr{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);
+  padding:12px 18px 10px;display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;position:relative;overflow:hidden;
+}
+.hdr::after{content:'⚾';position:absolute;right:-10px;top:-10px;font-size:5rem;opacity:.06;pointer-events:none}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.avatar{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--hippos);border:3px solid rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:900;
+  color:white;flex-shrink:0;cursor:pointer;
+}
+.hdr-name{font-family:'Nunito',sans-serif;font-weight:900;font-size:1rem;color:white;line-height:1.1}
+.hdr-team{font-size:.65rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.stat-pill{
+  background:rgba(255,255,255,.15);border-radius:20px;
+  padding:4px 10px;display:flex;align-items:center;gap:5px;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;color:white;
+}
+.stat-pill .ic{font-size:.9rem}
+.sound-btn{
+  width:32px;height:32px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.15);color:white;font-size:.9rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ══ TAB BAR ══ */
+.tabs{
+  display:flex;background:white;
+  border-bottom:2px solid var(--sky2);
+  flex-shrink:0;
+}
+.tab-btn{
+  flex:1;padding:9px 4px 7px;text-align:center;cursor:pointer;
+  border:none;background:none;-webkit-tap-highlight-color:transparent;
+  transition:all .15s;
+}
+.tab-btn .tab-ic{font-size:1.2rem;display:block;margin-bottom:2px}
+.tab-btn .tab-lb{font-size:.62rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.tab-btn.active .tab-lb{color:var(--hippos)}
+.tab-btn.active{border-bottom:2px solid var(--hippos);margin-bottom:-2px}
+
+/* ══ SCROLL ══ */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  min-height:0;padding:16px 16px calc(20px + var(--sab))}
+.page{display:none}.page.active{display:block}
+
+/* ══ SHARED ══ */
+.card{background:var(--card-bg);border:1px solid var(--card-border);
+  border-radius:16px;margin-bottom:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(26,58,107,.06)}
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 20px;border-radius:14px;border:none;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;
+  -webkit-tap-highlight-color:transparent;-webkit-appearance:none;
+  transition:transform .1s, box-shadow .1s;
+  box-shadow:0 4px 12px rgba(0,0,0,.12);
+}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--hippos),#2a6abf);color:white}
+.btn-green{background:linear-gradient(135deg,var(--green),var(--green-dark));color:white}
+.btn-ghost{background:var(--sky);color:var(--navy);box-shadow:none;border:1px solid var(--sky2)}
+.btn-w{width:100%}
+.section-title{
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:.8rem;
+  text-transform:uppercase;letter-spacing:.1em;color:var(--text3);
+  margin:20px 0 8px;
+}
+.section-title:first-child{margin-top:0}
+
+/* ══ ONBOARDING ══ */
+#ob{
+  position:fixed;inset:0;background:linear-gradient(160deg,var(--navy) 0%,var(--navy-light) 60%,var(--hippos) 100%);
+  z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 28px;padding-top:calc(40px + var(--sat));padding-bottom:calc(40px + var(--sab));
+}
+.ob-logo{font-size:5rem;margin-bottom:8px;text-align:center;animation:bounce 1s ease infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.ob-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:2.2rem;color:white;text-align:center;margin-bottom:4px}
+.ob-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;margin-bottom:32px}
+.ob-field{width:100%;max-width:340px;margin-bottom:14px}
+.ob-lbl{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.7);margin-bottom:6px}
+.ob-in{
+  width:100%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);
+  border-radius:12px;padding:14px 16px;font-size:1.1rem;font-family:'Nunito Sans',sans-serif;
+  color:white;-webkit-appearance:none;outline:none;transition:border-color .15s;
+  font-weight:700;
+}
+.ob-in:focus{border-color:rgba(255,255,255,.7)}
+.ob-in::placeholder{color:rgba(255,255,255,.4)}
+.ob-cats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;width:100%;max-width:340px}
+.ob-cat{
+  padding:10px 4px;border-radius:10px;border:2px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.1);color:white;font-family:'Nunito',sans-serif;
+  font-weight:800;font-size:.82rem;text-align:center;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:all .15s;
+}
+.ob-cat.sel{background:var(--hippos);border-color:var(--hippos)}
+
+/* ══ SETTINGS ══ */
+#set-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
+  display:none;align-items:flex-end;justify-content:center}
+#set-ov.show{display:flex}
+.set-sh{
+  background:var(--off-white);border-radius:20px 20px 0 0;
+  padding:20px 20px calc(20px + var(--sab));width:100%;max-width:520px;
+  max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.set-handle{width:40px;height:4px;background:var(--text3);border-radius:2px;margin:0 auto 16px;opacity:.5}
+.set-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.2rem;color:var(--text);margin-bottom:16px}
+
+/* ══ HOME / DAILY ══ */
+.daily-header{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);
+  border-radius:16px;padding:18px;margin-bottom:12px;position:relative;overflow:hidden;
+}
+.daily-header::after{content:'⚾';position:absolute;right:-8px;bottom:-12px;font-size:4.5rem;opacity:.1}
+.dh-greeting{font-size:.75rem;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.dh-name{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.6rem;color:white;margin-bottom:10px}
+.dh-progress-wrap{margin-bottom:6px}
+.dh-prog-label{display:flex;justify-content:space-between;font-size:.72rem;color:rgba(255,255,255,.7);font-weight:700;margin-bottom:5px}
+.dh-prog-bar{height:10px;background:rgba(255,255,255,.2);border-radius:5px;overflow:hidden}
+.dh-prog-fill{height:100%;background:linear-gradient(90deg,#fbbf24,#f97316);border-radius:5px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+.dh-done{font-size:.75rem;color:rgba(255,255,255,.6);font-weight:600}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat-card{background:white;border:1px solid var(--card-border);border-radius:14px;padding:12px;text-align:center;box-shadow:0 2px 6px rgba(26,58,107,.05)}
+.stat-val{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.6rem;line-height:1}
+.stat-lbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-top:2px}
+
+/* Daily tasks */
+.task-card{
+  background:white;border:2px solid var(--card-border);border-radius:16px;
+  padding:16px;margin-bottom:10px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:all .15s;
+  box-shadow:0 2px 8px rgba(26,58,107,.06);
+  display:flex;align-items:center;gap:14px;
+}
+.task-card:active{transform:scale(.98)}
+.task-card.done{background:var(--sky);border-color:var(--hippos)}
+.task-card.locked{opacity:.5;cursor:default}
+.task-ic{
+  width:52px;height:52px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;flex-shrink:0;
+}
+.task-body{flex:1}
+.task-cat{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:2px}
+.task-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;color:var(--text);line-height:1.2}
+.task-time{font-size:.72rem;color:var(--text3);font-weight:600;margin-top:2px}
+.task-right{flex-shrink:0}
+.task-check{
+  width:32px;height:32px;border-radius:50%;border:3px solid var(--card-border);
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+  transition:all .2s;
+}
+.task-card.done .task-check{background:var(--hippos);border-color:var(--hippos);color:white}
+
+/* Unlock bonus */
+.bonus-unlock{
+  background:linear-gradient(135deg,#7c3aed,#a855f7);
+  border-radius:16px;padding:16px;margin-bottom:12px;
+  display:flex;align-items:center;gap:14px;
+  box-shadow:0 4px 14px rgba(124,58,237,.3);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.bonus-unlock.locked{opacity:.4;cursor:default;filter:grayscale(.5)}
+.bonus-ic{font-size:2rem;flex-shrink:0}
+.bonus-text .bonus-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.7)}
+.bonus-text .bonus-name{font-family:'Nunito',sans-serif;font-weight:900;font-size:1rem;color:white}
+.bonus-text .bonus-hint{font-size:.72rem;color:rgba(255,255,255,.6);margin-top:1px}
+
+/* Inning calendar */
+.cal-card{background:white;border:1px solid var(--card-border);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 6px rgba(26,58,107,.05)}
+.cal-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:.9rem;color:var(--text);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.cal-month{font-size:.72rem;font-weight:700;color:var(--text3)}
+.cal-hdrs{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
+.cal-hdr{font-size:.55rem;font-weight:800;text-align:center;color:var(--text3);text-transform:uppercase}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.cal-day .cdn{font-size:.65rem;font-weight:700;color:var(--text3)}
+.cal-day.empty{opacity:0;pointer-events:none}
+.cal-day.training .cdn{color:var(--hippos)}
+.cal-day.training{background:var(--sky)}
+.cal-day.done{background:var(--hippos)}
+.cal-day.done .cdn{color:white}
+.cal-day.today{outline:2px solid var(--orange);outline-offset:-1px}
+.cal-day.today .cdn{font-weight:900}
+
+/* ══ QUIZ PAGE ══ */
+.quiz-start{text-align:center;padding:20px 0}
+.quiz-hero-emoji{font-size:4rem;margin-bottom:10px;display:block}
+.quiz-hero-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.6rem;color:var(--text);margin-bottom:6px}
+.quiz-hero-sub{font-size:.85rem;color:var(--text2);margin-bottom:24px;line-height:1.5}
+.quiz-cats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.quiz-cat-btn{
+  padding:16px 10px;border-radius:14px;border:2px solid var(--card-border);
+  background:white;cursor:pointer;text-align:center;
+  -webkit-tap-highlight-color:transparent;-webkit-appearance:none;
+  transition:all .15s;box-shadow:0 2px 6px rgba(26,58,107,.05);
+}
+.quiz-cat-btn:active{transform:scale(.97)}
+.quiz-cat-ic{font-size:1.8rem;margin-bottom:4px}
+.quiz-cat-nm{font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;color:var(--text)}
+.quiz-cat-ct{font-size:.68rem;font-weight:600;color:var(--text3)}
+
+/* Quiz active */
+.quiz-top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.quiz-hearts{display:flex;gap:3px;font-size:1.3rem}
+.quiz-prog-wrap{flex:1}
+.quiz-prog-bar{height:10px;background:var(--sky2);border-radius:5px;overflow:hidden}
+.quiz-prog-fill{height:100%;background:linear-gradient(90deg,var(--hippos),var(--navy));border-radius:5px;transition:width .3s}
+.quiz-prog-lbl{font-size:.62rem;font-weight:700;color:var(--text3);text-align:right;margin-top:2px}
+.quiz-streak{font-family:'Nunito',sans-serif;font-weight:900;font-size:.9rem;color:var(--orange);background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:3px 8px;flex-shrink:0}
+
+.qcard{background:white;border:2px solid var(--card-border);border-radius:20px;padding:20px;margin-bottom:12px;box-shadow:0 4px 16px rgba(26,58,107,.08)}
+.qcard-type{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:8px}
+.qcard-q{font-family:'Nunito',sans-serif;font-weight:800;font-size:1.2rem;color:var(--text);line-height:1.3;margin-bottom:12px}
+.qcard-diag{display:flex;justify-content:center;margin-bottom:12px}
+.qcard-diag svg{max-width:200px;width:100%}
+.qcard-term{background:var(--sky);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:.78rem;color:var(--navy);line-height:1.4;font-weight:600}
+.qcard-term strong{color:var(--hippos)}
+
+.mc-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.mc-opt{
+  padding:14px 10px;border-radius:12px;border:2.5px solid var(--card-border);
+  background:white;color:var(--text);font-family:'Nunito',sans-serif;font-weight:700;font-size:.9rem;
+  cursor:pointer;text-align:center;transition:all .15s;
+  -webkit-tap-highlight-color:transparent;-webkit-appearance:none;line-height:1.3;
+  box-shadow:0 2px 6px rgba(26,58,107,.05);
+}
+.mc-opt:active{transform:scale(.97)}
+.mc-opt.correct{background:#dcfce7;border-color:var(--green);color:var(--green-dark)}
+.mc-opt.wrong{background:#fee2e2;border-color:var(--red);color:#dc2626}
+.mc-opt:disabled{cursor:default;transform:none}
+
+.fc-reveal-btn{
+  width:100%;padding:14px;border-radius:12px;border:2.5px dashed var(--hippos);
+  background:var(--sky);color:var(--hippos);font-family:'Nunito',sans-serif;font-weight:800;
+  font-size:.95rem;cursor:pointer;-webkit-appearance:none;margin-bottom:10px;
+}
+.fc-ans{display:none;background:var(--sky);border-radius:12px;padding:14px;margin-bottom:10px;
+  font-size:.9rem;font-weight:600;color:var(--text);line-height:1.5}
+.fc-ans.show{display:block}
+.fc-rate{display:none;gap:8px}
+.fc-rate-btn{flex:1;padding:12px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;-webkit-appearance:none}
+.fc-rate-yes{background:#dcfce7;color:var(--green-dark)}
+.fc-rate-no{background:#fee2e2;color:#dc2626}
+
+.quiz-fb{border-radius:12px;padding:12px 14px;margin-bottom:10px;font-size:.85rem;font-weight:600;line-height:1.5;display:none}
+.quiz-fb.show{display:block}
+.quiz-fb.ok{background:#dcfce7;border:1.5px solid #86efac;color:var(--green-dark)}
+.quiz-fb.err{background:#fee2e2;border:1.5px solid #fca5a5;color:#dc2626}
+.quiz-xp-pop{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.1rem;color:var(--yellow);text-align:center;margin-bottom:6px;display:none}
+.quiz-xp-pop.show{display:block}
+
+.quiz-end{text-align:center;padding:24px 10px}
+.qe-em{font-size:4rem;margin-bottom:8px;display:block}
+.qe-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.8rem;color:var(--text);margin-bottom:4px}
+.qe-sub{font-size:.9rem;color:var(--text2);margin-bottom:16px}
+.qe-score{font-family:'Nunito',sans-serif;font-weight:900;font-size:2.8rem;color:var(--hippos);margin-bottom:20px}
+
+/* ══ BASICS ══ */
+.bc-card{
+  background:white;border:1px solid var(--card-border);border-radius:16px;
+  margin-bottom:10px;overflow:hidden;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;box-shadow:0 2px 6px rgba(26,58,107,.05);
+}
+.bc-head{padding:14px 16px;display:flex;align-items:center;gap:12px}
+.bc-emoji{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.bc-info{flex:1}
+.bc-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;color:var(--text);margin-bottom:1px}
+.bc-sub{font-size:.7rem;font-weight:600;color:var(--text3)}
+.bc-lv{font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+.bc-lv-1{background:#dbeafe;color:#1d4ed8}
+.bc-lv-2{background:#d1fae5;color:#065f46}
+.bc-lv-3{background:#f3e8ff;color:#7e22ce}
+.bc-tog{font-size:.8rem;color:var(--text3);transition:transform .2s;flex-shrink:0;margin-left:6px}
+.bc-tog.open{transform:rotate(180deg)}
+.bc-body{display:none;border-top:1px solid var(--sky2)}
+.bc-body.show{display:block}
+.bc-inner{padding:14px 16px}
+.bc-p{font-size:.88rem;line-height:1.65;color:var(--text);margin-bottom:8px}
+.bc-p strong{color:var(--hippos);font-weight:700}
+.bc-p:last-child{margin-bottom:0}
+.bc-steps{margin-bottom:8px}
+.bc-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.bc-snum{
+  width:26px;height:26px;border-radius:50%;background:var(--hippos);color:white;
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:.85rem;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+}
+.bc-stext{font-size:.85rem;line-height:1.55;color:var(--text)}
+.bc-stext strong{color:var(--hippos);font-weight:700}
+.bc-list{list-style:none;margin-bottom:8px}
+.bc-list li{font-size:.85rem;line-height:1.55;color:var(--text);
+  padding:5px 0 5px 18px;position:relative;border-bottom:1px solid var(--sky2)}
+.bc-list li:last-child{border-bottom:none}
+.bc-list li::before{content:'→';position:absolute;left:0;color:var(--hippos);font-weight:700}
+.bc-tip{background:var(--sky);border-radius:10px;padding:10px 12px;font-size:.82rem;font-weight:600;color:var(--navy);line-height:1.5}
+.term-row{display:flex;gap:8px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--sky2)}
+.term-row:last-child{border-bottom:none}
+.term-en{font-family:'Nunito',sans-serif;font-weight:800;font-size:.88rem;color:var(--hippos)}
+.term-cs{font-size:.78rem;font-weight:600;color:var(--text2)}
+
+/* ══ ACTIVITY ══ */
+.act-card{
+  background:white;border:2px solid var(--card-border);border-radius:16px;
+  margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(26,58,107,.06);
+}
+.act-head{padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.act-emoji{font-size:1.8rem;flex-shrink:0}
+.act-info{flex:1}
+.act-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;color:var(--text)}
+.act-desc{font-size:.75rem;font-weight:600;color:var(--text3);margin-top:1px}
+.act-xp{
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:.82rem;
+  background:var(--sky);color:var(--navy);border-radius:8px;padding:3px 9px;flex-shrink:0;
+}
+.act-body{display:none;border-top:1px solid var(--sky2)}
+.act-body.show{display:block}
+.act-steps{padding:14px 16px}
+.act-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.ast-n{
+  width:28px;height:28px;border-radius:8px;background:var(--navy);color:white;
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:.9rem;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.ast-text{font-size:.85rem;line-height:1.55;color:var(--text);font-weight:600;padding-top:4px}
+.ast-text strong{color:var(--hippos)}
+.act-done-btn{
+  margin:0 16px 16px;width:calc(100% - 32px);padding:13px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,var(--green),var(--green-dark));color:white;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;
+  -webkit-appearance:none;-webkit-tap-highlight-color:transparent;
+  box-shadow:0 4px 12px rgba(34,197,94,.35);
+}
+.act-card.completed{border-color:var(--green);background:#f0fdf4}
+
+/* ══ RESPONSIVE ══ */
+@media(min-width:480px){
+  .mc-opts{grid-template-columns:1fr 1fr}
+  .quiz-cats{grid-template-columns:repeat(4,1fr)}
+}
+@media(min-width:700px){
+  .scroll{max-width:600px;margin:0 auto;width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ ONBOARDING ══ -->
+<div id="ob">
+  <div class="ob-logo">⚾</div>
+  <div class="ob-title">Hroši Brno</div>
+  <div class="ob-sub">Tvůj baseballový trenér. Připrav se na hřiště!</div>
+  <div class="ob-field" style="max-width:340px;width:100%">
+    <div class="ob-lbl">Tvoje jméno</div>
+    <input class="ob-in" id="ob-name" type="text" placeholder="Oliver" autocomplete="off" autocorrect="off" autocapitalize="words">
+  </div>
+  <div class="ob-field" style="max-width:340px;width:100%">
+    <div class="ob-lbl">Číslo dresu</div>
+    <input class="ob-in" id="ob-num" type="number" placeholder="27" min="0" max="99">
+  </div>
+  <div style="max-width:340px;width:100%;margin-bottom:8px">
+    <div class="ob-lbl">Kategorie</div>
+    <div class="ob-cats" id="ob-cats">
+      <button class="ob-cat" data-c="U6">U6</button>
+      <button class="ob-cat sel" data-c="U8">U8</button>
+      <button class="ob-cat" data-c="U10">U10</button>
+      <button class="ob-cat" data-c="U12">U12</button>
+      <button class="ob-cat" data-c="U14">U14</button>
+      <button class="ob-cat" data-c="U16">U16</button>
+    </div>
+  </div>
+  <div style="max-width:340px;width:100%">
+    <button class="btn btn-primary btn-w" onclick="obDone()" style="font-size:1.05rem">
+      ⚾ Jdeme hrát!
+    </button>
+  </div>
+</div>
+
+<!-- ══ SETTINGS ══ -->
+<div id="set-ov" onclick="setClose(event)">
+  <div class="set-sh">
+    <div class="set-handle"></div>
+    <div class="set-title">⚙️ Nastavení</div>
+    <div style="margin-bottom:12px">
+      <div class="ob-lbl" style="color:var(--text3)">Jméno</div>
+      <input class="ob-in" id="s-name" type="text" autocomplete="off" style="background:var(--sky);border-color:var(--sky2);color:var(--text)">
+    </div>
+    <div style="margin-bottom:12px">
+      <div class="ob-lbl" style="color:var(--text3)">Číslo dresu</div>
+      <input class="ob-in" id="s-num" type="number" min="0" max="99" style="background:var(--sky);border-color:var(--sky2);color:var(--text)">
+    </div>
+    <div style="margin-bottom:12px">
+      <div class="ob-lbl" style="color:var(--text3)">Kategorie</div>
+      <div class="ob-cats" id="s-cats" style="max-width:100%"></div>
+    </div>
+    <div style="margin-bottom:12px">
+      <div class="ob-lbl" style="color:var(--text3)">Tréninkové dny</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px" id="s-days"></div>
+    </div>
+    <div id="s-day-details"></div>
+    <div style="margin-bottom:12px">
+      <div class="ob-lbl" style="color:var(--text3)">Zvuky 🔊</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" style="flex:1;font-size:.85rem" id="s-sound-on" onclick="setSoundPref('on')">Zapnout</button>
+        <button class="btn btn-ghost" style="flex:1;font-size:.85rem" id="s-sound-off" onclick="setSoundPref('off')">Vypnout</button>
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <div class="ob-lbl" style="color:var(--text3)">Čtení otázek (TTS) 🎤</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" style="flex:1;font-size:.85rem" id="s-tts-on" onclick="setTtsPref('on')">Zapnout</button>
+        <button class="btn btn-ghost" style="flex:1;font-size:.85rem" id="s-tts-off" onclick="setTtsPref('off')">Vypnout</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-primary" style="flex:1" onclick="setSave()">Uložit</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="setClose()">Zrušit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0">
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="avatar" id="hdr-av" onclick="setOpen()">O</div>
+    <div>
+      <div class="hdr-name" id="hdr-name">Oliver</div>
+      <div class="hdr-team" id="hdr-team">Hippos U8</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="stat-pill"><span class="ic">🔥</span><span id="hdr-streak">0</span></div>
+    <div class="stat-pill"><span class="ic">⚾</span><span id="hdr-runs">0</span></div>
+    <button class="sound-btn" id="sound-btn" onclick="toggleSound()">🔊</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('home')" id="tab-home">
+    <span class="tab-ic">🏠</span><span class="tab-lb">Dnes</span>
+  </button>
+  <button class="tab-btn" onclick="showTab('quiz')" id="tab-quiz">
+    <span class="tab-ic">🎯</span><span class="tab-lb">Kvíz</span>
+  </button>
+  <button class="tab-btn" onclick="showTab('activity')" id="tab-activity">
+    <span class="tab-ic">💪</span><span class="tab-lb">Cvičení</span>
+  </button>
+  <button class="tab-btn" onclick="showTab('basics')" id="tab-basics">
+    <span class="tab-ic">📖</span><span class="tab-lb">Pravidla</span>
+  </button>
+</div>
+
+<div class="scroll" id="ms">
+  <div class="page active" id="page-home"></div>
+  <div class="page" id="page-quiz"></div>
+  <div class="page" id="page-activity"></div>
+  <div class="page" id="page-basics"></div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════
+const S={
+  get(k,d=null){try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d}catch{return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+};
+const today=()=>new Date().toISOString().slice(0,10);
+
+// ═══════════════════════════════════
+// PROFILE
+// ═══════════════════════════════════
+const DEF={name:'',number:'27',category:'U8',xp:0,runs:0,
+  trainingDays:[1,3,5],dayConfig:{},soundOn:true,ttsOn:false};
+function getP(){return Object.assign({},DEF,S.get('prof',{}))}
+function saveP(p){S.set('prof',p);updateHdr()}
+function addRuns(n){const p=getP();p.runs=(p.runs||0)+n;saveP(p)}
+
+// ═══════════════════════════════════
+// STREAK
+// ═══════════════════════════════════
+function getStr(){return S.get('str',{count:0,lastDate:'',days:[]})}
+function recordDay(){
+  const t=today(),s=getStr();
+  if(s.lastDate===t)return;
+  const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+  s.count=s.lastDate===y?s.count+1:1;
+  s.lastDate=t;s.days=s.days||[];
+  if(!s.days.includes(t))s.days.push(t);
+  if(s.days.length>90)s.days=s.days.slice(-90);
+  S.set('str',s);updateHdr();
+}
+
+// ═══════════════════════════════════
+// SOUND & TTS
+// ═══════════════════════════════════
+const AC=window.AudioContext||window.webkitAudioContext;
+let ac=null;
+function getAC(){if(!ac&&AC)try{ac=new AC()}catch(e){}return ac}
+function playTone(freq,dur,type='sine',vol=.3){
+  const a=getAC();if(!a||!getP().soundOn)return;
+  try{
+    const o=a.createOscillator(),g=a.createGain();
+    o.connect(g);g.connect(a.destination);
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,a.currentTime+dur);
+    o.start();o.stop(a.currentTime+dur);
+  }catch(e){}
+}
+function soundCorrect(){
+  playTone(523,.1,'sine',.25);
+  setTimeout(()=>playTone(659,.1,'sine',.25),100);
+  setTimeout(()=>playTone(784,.2,'sine',.25),200);
+}
+function soundWrong(){playTone(200,.3,'sawtooth',.2)}
+function soundComplete(){
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,.15,'sine',.2),i*120));
+}
+function soundTap(){playTone(440,.06,'sine',.15)}
+function toggleSound(){
+  const p=getP();p.soundOn=!p.soundOn;saveP(p);
+  document.getElementById('sound-btn').textContent=p.soundOn?'🔊':'🔇';
+}
+function setSoundPref(v){
+  const p=getP();p.soundOn=v==='on';saveP(p);
+  document.getElementById('sound-btn').textContent=p.soundOn?'🔊':'🔇';
+  updateSetBtns();
+}
+function setTtsPref(v){const p=getP();p.ttsOn=v==='on';saveP(p);updateSetBtns()}
+function speak(txt){
+  const p=getP();if(!p.ttsOn||!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(txt);
+  u.lang='cs-CZ';u.rate=.95;u.pitch=1.1;
+  window.speechSynthesis.speak(u);
+}
+
+// ═══════════════════════════════════
+// DAILY TASKS
+// ═══════════════════════════════════
+const DAILY_POOL = [
+  // TEORIE
+  {id:'q-basics',type:'theory',emoji:'🧠',cat:'Teorie',name:'Dnešní pravidlo',time:'2 min',color:'#dbeafe',action:()=>showTab('quiz')},
+  // ATLETIKA
+  {id:'ath-jump',type:'athletic',emoji:'🦘',cat:'Atletika',name:'5× přeskočit čáru',time:'2 min',
+   steps:['Stoupni si bokem k čáře (linka na zemi, provaz...)','5× přeskákej oběma nohama tam a zpět','Pak 5× na jedné noze – levá, pak pravá','Každý skok rovně – kolena trochu pokrčená']},
+  {id:'ath-run',type:'athletic',emoji:'🏃',cat:'Atletika',name:'Starty a akcelerace',time:'2 min',
+   steps:['Naklop se dopředu jako závodní auto na startu','Na signál (nebo si řekni "teď!") – exploduj vpřed','Udělej 5 krátkých výbušných startů na 10 metrů','Chvíli odpočiň a opakuj']},
+  {id:'ath-balance',type:'athletic',emoji:'🧘',cat:'Atletika',name:'Rovnováha na jedné noze',time:'1 min',
+   steps:['Stůj na jedné noze – zkus 30 sekund','Zavři oči – je to těžší!','Zkus druhou nohu','Bonus: stůj na jedné noze a chytej míč']},
+  // HÁZENÍ
+  {id:'throw-wall',type:'throwing',emoji:'⚾',cat:'Házení',name:'50× hodit ke zdi',time:'3 min',
+   steps:['Grip: 2 prsty přes švy, palec dole','Stůj bokem ke zdi, vzdálenost 3-5 m','Hod: krok vpřed + rotace boků + švih','Chyť odraz a opakuj – 50× pomalu a správně']},
+  {id:'throw-aim',type:'throwing',emoji:'🎯',cat:'Házení',name:'Hod na cíl',time:'3 min',
+   steps:['Nakresli křídou nebo přilep papír na zeď – terč','Vzdálenost: 5 metrů','Hoď 20× – počítej zásahy','Každý hod: krok, rotace, švih, follow-through']},
+  // PÁLENÍ
+  {id:'bat-shadow',type:'batting',emoji:'🏏',cat:'Pálení',name:'Stínové švihy',time:'2 min',
+   steps:['Vezmi pálku nebo klacek/deštník','Postoj: bokem, nohy na šíři ramen, kolena pokrčena','Udělej 20 pomalých švihu – soustřeď se na pohyb','Pořadí: BOKY → RAMENA → PÁLKA']},
+  {id:'bat-tee',type:'batting',emoji:'🏏',cat:'Pálení',name:'20× odpal z tee',time:'3 min',
+   steps:['Nastav tee (nebo polož míč na kužel/sklenici)','Postoj: dominantní oko dál od míče','Pohled na míč AŽ do kontaktu','20 odpalů – po každém si řekni co bylo dobře']},
+  // CHYTÁNÍ
+  {id:'catch-wall',type:'catching',emoji:'🧤',cat:'Chytání',name:'Chytání u zdi',time:'3 min',
+   steps:['Stůj 3 m od zdi, rukavice nasazená','Hoď míč o zeď – různě vysoko, nízko, do strany','Chyť oběma rukama – nejdřív rukavice, pak zavři','30× – střídej pravou a levou stranu']},
+  {id:'catch-hop',type:'catching',emoji:'👀',cat:'Postřeh',name:'Hra "Hop!"',time:'2 min',
+   steps:['Potřebuješ kamaráda nebo tátu','Jeden stojí zády, druhý hodí míč nahoru a zakřičí HOP!','Otočíš se a chytáš!','Kdo víc chytí za 2 minuty?']},
+  // MENTÁLNÍ
+  {id:'mental-breath',type:'mental',emoji:'🧘',cat:'Mentální',name:'Baseballový dech',time:'1 min',
+   steps:['Sednout si nebo stoupnout rovně','Nádech nosem – pomalu 4 vteřiny','Zadrž dech – 2 vteřiny','Výdech ústy – pomalu 6 vteřin','Opakuj 5×. Tohle dělají profi hráči před zápasen!']},
+  {id:'mental-viz',type:'mental',emoji:'🎬',cat:'Mentální',name:'Vizualizace odpalu',time:'2 min',
+   steps:['Zavři oči','Představ si: stojíš u pálky, vidíš míč jak letí','Vidíš jak švihneš – KONTAKT – míč letí daleko!','3× si to přehraj v hlavě','Pak otevři oči a pocit si pamatuj na hřišti']},
+  // VÝBAVA
+  {id:'gear-pack',type:'gear',emoji:'🎒',cat:'Výbava',name:'Sbalit si na trénink',time:'1 min',
+   steps:['Helma ✓','Rukavice (glove) ✓','Kšiltovka (cap) ✓','Pití – plná lahev ✓','Spiky / turfy ✓','Zkontroluj batoh 2× – co chybí?']},
+];
+
+function getTodayTasks(){
+  // Rotate daily tasks based on day of year - 3 core + bonus
+  const doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
+  const pool=[...DAILY_POOL];
+  // Always include 1 theory, 1 physical, 1 gear/mental
+  const theory=pool.filter(t=>t.type==='theory');
+  const physical=pool.filter(t=>['athletic','throwing','batting','catching'].includes(t.type));
+  const soft=pool.filter(t=>['mental','gear'].includes(t.type));
+  const pick=(arr,offset)=>arr[Math.abs(doy+offset)%arr.length];
+  return [pick(theory,0),pick(physical,1),pick(soft,2)];
+}
+
+function getTodayBonus(){
+  const doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
+  const extras=DAILY_POOL.filter(t=>!['theory','gear'].includes(t.type));
+  return extras[doy%extras.length];
+}
+
+function getDoneToday(){return S.get('done-'+today(),{})}
+function setDoneToday(id){const d=getDoneToday();d[id]=true;S.set('done-'+today(),d)}
+
+// ═══════════════════════════════════
+// HEADER
+// ═══════════════════════════════════
+function updateHdr(){
+  const p=getP(),st=getStr();
+  document.getElementById('hdr-av').textContent=(p.name||'?')[0].toUpperCase();
+  document.getElementById('hdr-name').textContent=p.name||'Hráč';
+  document.getElementById('hdr-team').textContent=`Hippos · ${p.category||'U8'}`;
+  document.getElementById('hdr-streak').textContent=st.count;
+  document.getElementById('hdr-runs').textContent=p.runs||0;
+  document.getElementById('sound-btn').textContent=p.soundOn?'🔊':'🔇';
+}
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+function init(){
+  const p=getP();
+  if(!p.name||!S.get('ob-done')){
+    document.getElementById('ob').style.display='flex';
+    document.getElementById('app').style.display='none';
+  } else startApp();
+}
+
+document.getElementById('ob-cats').addEventListener('click',e=>{
+  if(e.target.classList.contains('ob-cat')){
+    document.querySelectorAll('#ob-cats .ob-cat').forEach(b=>b.classList.remove('sel'));
+    e.target.classList.add('sel');
+  }
+});
+
+function obDone(){
+  const name=document.getElementById('ob-name').value.trim()||'Hráč';
+  const num=document.getElementById('ob-num').value.trim()||'27';
+  const cat=document.querySelector('#ob-cats .ob-cat.sel')?.dataset.c||'U8';
+  const p=getP();p.name=name;p.number=num;p.category=cat;
+  saveP(p);S.set('ob-done',true);
+  document.getElementById('ob').style.display='none';
+  startApp();
+}
+
+function startApp(){
+  document.getElementById('app').style.display='flex';
+  updateHdr();
+  renderHome();renderBasics();renderActivity();renderQuizStart();
+}
+
+// ═══════════════════════════════════
+// TABS
+// ═══════════════════════════════════
+function showTab(n){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+n).classList.add('active');
+  document.getElementById('tab-'+n).classList.add('active');
+  document.getElementById('ms').scrollTop=0;
+  soundTap();
+  if(n==='home')renderHome();
+}
+
+// ═══════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════
+const DAY_NAMES=['Ne','Po','Út','St','Čt','Pá','So'];
+const DAY_ORDER=[[1,'Po'],[2,'Út'],[3,'St'],[4,'Čt'],[5,'Pá'],[6,'So'],[0,'Ne']];
+const CATS=['U6','U8','U10','U12','U14','U16'];
+
+function setOpen(){
+  const p=getP();
+  document.getElementById('s-name').value=p.name||'';
+  document.getElementById('s-num').value=p.number||'';
+  const days=p.trainingDays||[1,3,5];
+  // cats
+  document.getElementById('s-cats').innerHTML=CATS.map(c=>
+    `<button class="ob-cat${c===p.category?' sel':''}" data-c="${c}" onclick="selCat(this,'s-cats')">${c}</button>`
+  ).join('');
+  // days
+  document.getElementById('s-days').innerHTML=DAY_ORDER.map(([d,l])=>
+    `<button style="padding:6px 2px;border-radius:6px;border:1.5px solid var(--sky2);background:${days.includes(d)?'var(--hippos)':'var(--sky)'};color:${days.includes(d)?'white':'var(--text3)'};font-family:'Nunito',sans-serif;font-weight:800;font-size:.68rem;cursor:pointer;-webkit-tap-highlight-color:transparent" data-d="${d}" onclick="toggleDayBtn(this)">${l}</button>`
+  ).join('');
+  renderDayDetails(days,p.dayConfig||{});
+  updateSetBtns();
+  document.getElementById('set-ov').classList.add('show');
+}
+function selCat(btn,container){
+  document.querySelectorAll('#'+container+' .ob-cat').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function toggleDayBtn(btn){
+  const isOn=btn.style.background.includes('hippos')||btn.dataset.on==='1';
+  btn.style.background=isOn?'var(--sky)':'var(--hippos)';
+  btn.style.color=isOn?'var(--text3)':'white';
+  btn.dataset.on=isOn?'0':'1';
+  const days=[...document.getElementById('s-days').querySelectorAll('button')]
+    .filter(b=>b.style.background.includes('hippos')||b.dataset.on==='1')
+    .map(b=>parseInt(b.dataset.d));
+  renderDayDetails(days,getP().dayConfig||{});
+}
+function renderDayDetails(days,cfg){
+  const dd=document.getElementById('s-day-details');
+  dd.innerHTML=days.map(d=>`
+    <div style="background:var(--sky);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+      <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:.82rem;color:var(--navy);margin-bottom:6px">${DAY_NAMES[d]}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div><div class="ob-lbl" style="color:var(--text3);font-size:.6rem">Čas</div>
+          <input class="ob-in" id="dd-t-${d}" type="text" placeholder="16:00" value="${cfg[d]?.time||''}" style="background:white;border-color:var(--sky2);color:var(--text);font-size:.9rem;padding:8px 10px"></div>
+        <div><div class="ob-lbl" style="color:var(--text3);font-size:.6rem">Místo</div>
+          <input class="ob-in" id="dd-p-${d}" type="text" placeholder="Hřiště D" value="${cfg[d]?.place||''}" style="background:white;border-color:var(--sky2);color:var(--text);font-size:.9rem;padding:8px 10px"></div>
+      </div>
+    </div>`).join('');
+}
+function updateSetBtns(){
+  const p=getP();
+  document.getElementById('s-sound-on').style.background=p.soundOn?'var(--hippos)':'';
+  document.getElementById('s-sound-on').style.color=p.soundOn?'white':'';
+  document.getElementById('s-sound-off').style.background=!p.soundOn?'var(--red)':'';
+  document.getElementById('s-sound-off').style.color=!p.soundOn?'white':'';
+  document.getElementById('s-tts-on').style.background=p.ttsOn?'var(--hippos)':'';
+  document.getElementById('s-tts-on').style.color=p.ttsOn?'white':'';
+  document.getElementById('s-tts-off').style.background=!p.ttsOn?'var(--red)':'';
+  document.getElementById('s-tts-off').style.color=!p.ttsOn?'white':'';
+}
+function setClose(e){if(!e||e.target===document.getElementById('set-ov'))document.getElementById('set-ov').classList.remove('show')}
+function setSave(){
+  const p=getP();
+  p.name=document.getElementById('s-name').value.trim()||p.name;
+  p.number=document.getElementById('s-num').value.trim()||p.number;
+  p.category=document.querySelector('#s-cats .ob-cat.sel')?.dataset.c||p.category;
+  p.trainingDays=[...document.getElementById('s-days').querySelectorAll('button')]
+    .filter(b=>b.style.background.includes('hippos')||b.dataset.on==='1')
+    .map(b=>parseInt(b.dataset.d));
+  p.dayConfig={};
+  p.trainingDays.forEach(d=>{
+    const t=document.getElementById('dd-t-'+d),pl=document.getElementById('dd-p-'+d);
+    if(t||pl)p.dayConfig[d]={time:t?.value.trim()||'',place:pl?.value.trim()||''};
+  });
+  saveP(p);renderHome();
+  document.getElementById('set-ov').classList.remove('show');
+}
+
+// ═══════════════════════════════════
+// HOME / DAILY
+// ═══════════════════════════════════
+function renderHome(){
+  const p=getP(),st=getStr();
+  const tasks=getTodayTasks();
+  const bonus=getTodayBonus();
+  const done=getDoneToday();
+  const doneCount=tasks.filter(t=>done[t.id]).length;
+  const allDone=doneCount>=tasks.length;
+  if(allDone)recordDay();
+
+  // Calendar
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth();
+  const firstDay=new Date(y,m,1),lastDay=new Date(y,m+1,0);
+  const firstDow=firstDay.getDay();
+  const offset=firstDow===0?6:firstDow-1;
+  const stDays=new Set(st.days||[]);
+  const trainDays=p.trainingDays||[1,3,5];
+
+  let calHtml='';
+  for(let i=0;i<offset;i++) calHtml+=`<div class="cal-day empty"><div class="cdn"></div></div>`;
+  for(let d=1;d<=lastDay.getDate();d++){
+    const dd=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=new Date(y,m,d).getDay();
+    const isTrain=trainDays.includes(dow);
+    const isDone=stDays.has(dd);
+    const isToday=dd===today();
+    calHtml+=`<div class="cal-day${isTrain?' training':''}${isDone?' done':''}${isToday?' today':''}">
+      <div class="cdn">${d}</div></div>`;
+  }
+
+  // Next training
+  const nxt=nextTraining(p);
+
+  const greetings=['Ahoj','Čau','Hey','Nazdar'];
+  const greet=greetings[new Date().getHours()%greetings.length];
+
+  let html=`
+    <div class="daily-header">
+      <div class="dh-greeting">${greet}, ${p.name||'hráči'}! 👋</div>
+      <div class="dh-name">#${p.number} Dnešní trénink</div>
+      <div class="dh-progress-wrap">
+        <div class="dh-prog-label">
+          <span>Splněno ${doneCount}/${tasks.length}</span>
+          <span>${allDone?'🏆 Perfektní!':''}</span>
+        </div>
+        <div class="dh-prog-bar"><div class="dh-prog-fill" style="width:${(doneCount/tasks.length)*100}%"></div></div>
+      </div>
+    </div>`;
+
+  // Stats
+  html+=`<div class="stats-row">
+    <div class="stat-card"><div class="stat-val" style="color:var(--orange)">${st.count}🔥</div><div class="stat-lbl">Dní v řadě</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--hippos)">${p.runs||0}</div><div class="stat-lbl">Body (runs)</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--purple)">${Math.floor((p.runs||0)/10)}</div><div class="stat-lbl">Level</div></div>
+  </div>`;
+
+  // Next training card
+  if(nxt){
+    html+=`<div style="background:var(--sky);border:1.5px solid var(--sky2);border-radius:14px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:1.6rem">🏟️</span>
+      <div><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)">Příští trénink</div>
+        <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;color:var(--navy)">${nxt.label}</div>
+        <div style="font-size:.72rem;font-weight:600;color:var(--text2)">${nxt.time?nxt.time+' · ':''}${nxt.place||'Hřiště'}</div>
+      </div>
+    </div>`;
+  }
+
+  // Daily tasks
+  html+=`<div class="section-title">Dnešní úkoly</div>`;
+  tasks.forEach((task,i)=>{
+    const isDone=done[task.id];
+    html+=`<div class="task-card${isDone?' done':''}" onclick="doTask('${task.id}','${task.type}')">
+      <div class="task-ic" style="background:${task.color||'var(--sky)'}">
+        ${task.emoji}
+      </div>
+      <div class="task-body">
+        <div class="task-cat">${task.cat}</div>
+        <div class="task-name">${task.name}</div>
+        <div class="task-time">⏱ ${task.time}</div>
+      </div>
+      <div class="task-right">
+        <div class="task-check">${isDone?'✓':''}</div>
+      </div>
+    </div>`;
+  });
+
+  // Bonus
+  html+=`<div class="bonus-unlock${allDone?'':' locked'}" onclick="${allDone?`doBonus('${bonus.id}')`:''}">
+    <div class="bonus-ic">${bonus.emoji}</div>
+    <div class="bonus-text">
+      <div class="bonus-label">${allDone?'🔓 Bonus odemčen!':'🔒 Splň úkoly pro bonus'}</div>
+      <div class="bonus-name">${bonus.name}</div>
+      <div class="bonus-hint">${allDone?'Klikni a hraj!':'Dokonči všechny 3 úkoly'}</div>
+    </div>
+  </div>`;
+
+  // Calendar
+  html+=`<div class="cal-card">
+    <div class="cal-title">
+      ${now.toLocaleString('cs-CZ',{month:'long'})}
+      <span class="cal-month">${y}</span>
+    </div>
+    <div class="cal-hdrs">${['Po','Út','St','Čt','Pá','So','Ne'].map(d=>`<div class="cal-hdr">${d}</div>`).join('')}</div>
+    <div class="cal-grid">${calHtml}</div>
+  </div>`;
+
+  if(allDone){
+    html+=`<div style="background:linear-gradient(135deg,#fbbf24,#f97316);border-radius:16px;padding:16px;text-align:center;margin-bottom:12px;box-shadow:0 4px 14px rgba(251,191,36,.35)">
+      <div style="font-size:2rem;margin-bottom:4px">🏆</div>
+      <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:1.1rem;color:white">Výborně, ${p.name}!</div>
+      <div style="font-size:.8rem;color:rgba(255,255,255,.85);margin-top:2px">Dnes jsi splnil všechno. Jsi profík!</div>
+    </div>`;
+  }
+
+  document.getElementById('page-home').innerHTML=html;
+}
+
+function doTask(id,type){
+  soundTap();
+  if(type==='theory'){showTab('quiz');return}
+  if(type==='athletic'||type==='throwing'||type==='batting'||type==='catching'){showTab('activity');return}
+  if(type==='mental'||type==='gear'){
+    // Show activity detail and mark done
+    showTab('activity');return;
+  }
+  markTaskDone(id);
+}
+function doBonus(id){soundTap();showTab('activity')}
+function markTaskDone(id){
+  setDoneToday(id);addRuns(1);soundComplete();renderHome();
+}
+
+function nextTraining(p){
+  const days=(p.trainingDays||[]).map(Number);if(!days.length)return null;
+  const now=new Date(),dow=now.getDay();
+  for(let i=0;i<=7;i++){
+    const d=(dow+i)%7;
+    if(days.includes(d)){
+      const cfg=(p.dayConfig&&p.dayConfig[d])||{};
+      return{label:i===0?'Dnes':i===1?'Zítra':'Za '+i+' dny ('+DAY_NAMES[d]+')',time:cfg.time||'',place:cfg.place||''};
+    }
+  }
+  return null;
+}
+
+// ═══════════════════════════════════
+// QUIZ
+// ═══════════════════════════════════
+function fieldQ(o={}){
+  const W=180,H=155;
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  s+=`<ellipse cx="90" cy="80" rx="86" ry="70" fill="#d1fae5"/>`;
+  s+=`<polygon points="90,135 148,78 90,21 32,78" fill="#fef3c7"/>`;
+  s+=`<circle cx="90" cy="95" r="11" fill="none" stroke="#d97706" stroke-width="1.2" stroke-dasharray="3,2"/>`;
+  const bp={home:[90,135],first:[148,78],second:[90,21],third:[32,78]};
+  const rs=new Set(o.runners||[]);
+  for(const[n,[x,y]] of Object.entries(bp)){
+    if(n==='home'){s+=`<polygon points="${x},${y-6} ${x+6},${y} ${x},${y+4} ${x-6},${y}" fill="#92400e"/>`;
+    }else{const num=n==='first'?1:n==='second'?2:3;const on=rs.has(num);
+      s+=`<rect x="${x-5}" y="${y-5}" width="10" height="10" rx="2" fill="${on?'#f97316':'#fef3c7'}" stroke="${on?'#ea580c':'#d97706'}" stroke-width="1.5" transform="rotate(45,${x},${y})"/>`;
+    }
+  }
+  const fp={p:[90,95],c:[90,143],s1b:[143,92],s2b:[116,68],ss:[66,68],s3b:[38,92],lf:[34,44],cf:[90,14],rf:[146,44]};
+  for(const[k,[fx,fy]] of Object.entries(fp)){
+    const me=o.myPos===k;
+    const clr=me?'#3d8ef0':'#059669';
+    s+=`<circle cx="${fx}" cy="${fy}" r="${me?7:4}" fill="${me?'#dbeafe':'#d1fae5'}" stroke="${clr}" stroke-width="${me?2:1.5}"/>`;
+    const l=k==='s1b'?'1B':k==='s2b'?'2B':k==='ss'?'SS':k==='s3b'?'3B':k.toUpperCase();
+    s+=`<text x="${fx}" y="${fy+2.5}" text-anchor="middle" font-size="${me?5.5:4.5}" font-weight="800" fill="${clr}" font-family="sans-serif">${me?'TY':l}</text>`;
+  }
+  if(o.myPos==='bat'){
+    s+=`<circle cx="${90+12}" cy="138" r="6" fill="#dbeafe" stroke="#3d8ef0" stroke-width="2"/>`;
+    s+=`<text x="${90+12}" y="140.5" text-anchor="middle" font-size="5" font-weight="800" fill="#3d8ef0" font-family="sans-serif">TY</text>`;
+  }
+  if(o.myRunner){const rp={1:[148,78],2:[90,21],3:[32,78]};const[rx,ry]=rp[o.myRunner];
+    s+=`<circle cx="${rx+8}" cy="${ry-8}" r="5" fill="#dbeafe" stroke="#3d8ef0" stroke-width="2"/>`;
+    s+=`<text x="${rx+8}" y="${ry-4}" text-anchor="middle" font-size="4" font-weight="800" fill="#3d8ef0" font-family="sans-serif">TY</text>`;
+  }
+  for(const a of(o.arrows||[])){
+    const[x1,y1]=a.from,[x2,y2]=a.to,c=a.color||'#3d8ef0';
+    const id='qa'+Math.random().toString(36).slice(2,6);
+    s+=`<defs><marker id="${id}" markerWidth="6" markerHeight="4" refX="4" refY="2" orient="auto"><polygon points="0 0,6 2,0 4" fill="${c}"/></marker></defs>`;
+    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="2" marker-end="url(#${id})"/>`;
+  }
+  s+=`</svg>`;return s;
+}
+
+const QQ=[
+  {cat:'obrana',type:'mc',q:'Grounder ke mně! Prázdné mety. Kam hodím?',
+   term:'<strong>Grounder</strong> = odpal po zemi. <strong>Force out</strong> = stačí šlápnout metu.',
+   diag:fieldQ({myPos:'ss',arrows:[{from:[68,70],to:[142,90],color:'#3d8ef0'}]}),
+   opts:['Na 1. metu ✅','Na 2. metu','Na domácí','K pitcherovi'],ans:0,
+   exp:'Pálkař musí na 1. metu – to je force situace. Fielder šlápne metu a je out!'},
+  {cat:'pálení',type:'mc',q:'Jak správně švihám? Co jde první?',
+   term:'<strong>Swing</strong> = švih. Správné pořadí = nejvíc síly!',
+   diag:fieldQ({myPos:'bat'}),
+   opts:['Boky → ramena → pálka ✅','Ramena → boky → pálka','Pálka rovnou','Vše najednou'],ans:0,
+   exp:'Boky se otočí PRVNÍ! Pak ramena, pak pálka jako bič. Zkus to!'},
+  {cat:'pravidla',type:'mc',q:'Jsou 2 outy. Runner na 1. metě. Míč jde po zemi. Co runner udělá?',
+   term:'<strong>2 outy</strong> = musíš riskovat. Nečekáš!',
+   diag:fieldQ({runners:[1],myRunner:1}),
+   opts:['Okamžitě sprint na 2. ✅','Čeká','Vrací se','Stojí'],ans:0,
+   exp:'Při 2 outech vždy sprintuješ! Nemůže být hůř – a třeba dáš bod!'},
+  {cat:'obrana',type:'mc',q:'Fly ball ke mně! Co jako první?',
+   diag:fieldQ({myPos:'cf'}),
+   opts:['Volám Mine! ✅','Čekám','Kouším jestli to bere kamarád','Hodím se na zem'],ans:0,
+   exp:'Mine! = kamarádi se odstaví. Outfielder má přednost. Komunikace je základ!'},
+  {cat:'běh',type:'fc',q:'Jsem na 3. metě. Silný odpal. Co udělám?',
+   term:'<strong>3. meta → home plate</strong> = bod pro tým!',
+   diag:fieldQ({runners:[3],myRunner:3}),
+   ans:'Sprint na home plate! Šlápnu ho = BOD! Kouním na signál trenéra – mávání = jdi!',
+   exp:'Z třetí je to nejkratší cesta domů. Při silném odpalu vždy sprint!'},
+  {cat:'obrana',type:'mc',q:'Co je rozdíl: force out vs tag out?',
+   diag:fieldQ({runners:[1],myPos:'s2b'}),
+   opts:['Force = šlápnu metu, tag = dotknu se runnera ✅','Force = dotknu se, tag = šlápnu','Jsou stejné','Force = jen na 1. metě'],ans:0,
+   exp:'Force = runner musel jít → šlápnu metu. Tag = runner nemusel jít → musím se ho dotknout!'},
+  {cat:'pravidla',type:'mc',q:'U8 Hroši – kolik pokusů má pálkař?',
+   diag:fieldQ({myPos:'bat'}),
+   opts:['5 pokusů ✅','3 strikeouty','4 bally','Neomezeno'],ans:0,
+   exp:'U8 Hroši = 5 pokusů na odpálení. Žádné bally ani strikeouty jako v MLB!'},
+  {cat:'běh',type:'mc',q:'Jsem na 1. metě. Grounder. Musím jít na 2.?',
+   term:'<strong>Force situace</strong> = nemám jinou volbu!',
+   diag:fieldQ({runners:[1],myRunner:1,arrows:[{from:[148,76],to:[92,26],color:'#f97316'}]}),
+   opts:['Ano, musím! Force! ✅','Ne, můžu stát','Záleží na outech','Záleží na odpalu'],ans:0,
+   exp:'Force! Pálkař přichází na 1. metu – nemám kam jít. Musím na 2!'},
+  {cat:'obrana',type:'fc',q:'Jak vypadá správná ready pozice polaře?',
+   term:'<strong>Ready position</strong> = jsem připravený na vše!',
+   diag:fieldQ({myPos:'ss'}),
+   ans:'Nohy rozkročené. Kolena pokrčená. Rukavice dolu. Pohled na pálkaře. Malý poskok při nadhozu – ready hop!',
+   exp:'Nízko + pohyb = rychlá reakce. Stát rovně = pomalý fielder!'},
+  {cat:'pravidla',type:'mc',q:'Rozehra v U8 – jak zastavím hru?',
+   diag:fieldQ({myPos:'p',arrows:[{from:[144,88],to:[92,96],color:'#3d8ef0'}]}),
+   opts:['Hodím míč k pitcherovi ✅','Chytač drží míč','Zvednu ruku','Zakřičím stop'],ans:0,
+   exp:'Speciální U8 pravidlo! Hod k nadhazovacímu kruhu = konec rozezhry. Runneri mohou dokončit metu, nesmí dál.'},
+  {cat:'pálení',type:'mc',q:'Co udělám hned po odpalu?',
+   diag:fieldQ({myPos:'bat',arrows:[{from:[100,133],to:[146,80],color:'#f97316'}]}),
+   opts:['Sprint na 1. metu! ✅','Koukám kam letí míč','Čekám','Pomalu jdu'],ans:0,
+   exp:'Okamžitý sprint! Pálku odhodit do strany. Nekoukat na míč – koukám na 1. metu!'},
+  {cat:'pravidla',type:'mc',q:'Fly ball – fielder chytí přímo z letu. Co to znamená?',
+   diag:fieldQ({myPos:'rf'}),
+   opts:['Pálkař je out ✅','Runneri mohou běžet','Hodí se na 1. metu','Nic'],ans:0,
+   exp:'Fly out = pálkař je ihned out! Runneri musí počkat nebo se vrátit.'},
+];
+
+let QS={};
+function renderQuizStart(){
+  const done=S.get('qz-'+today())||0;
+  const p=getP();
+  document.getElementById('page-quiz').innerHTML=`
+    <div class="quiz-start">
+      <span class="quiz-hero-emoji">🎯</span>
+      <div class="quiz-hero-title">Kvíz!</div>
+      <div class="quiz-hero-sub">Odpovídej správně a sbírej body.<br>Každá správná odpověď = <strong>1 bod (run)</strong>!</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" style="color:var(--hippos)">${done}</div><div class="stat-lbl">Dnes splněno</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--orange)">${p.runs||0}</div><div class="stat-lbl">Body celkem</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--green)">${QQ.length}</div><div class="stat-lbl">Otázek</div></div>
+    </div>
+    <button class="btn btn-primary btn-w" onclick="startQuiz('all')" style="margin-bottom:10px;font-size:1rem">
+      ▶ Spustit kvíz (10 otázek)
+    </button>
+    <button class="btn btn-ghost btn-w" onclick="startQuiz('r1')" style="margin-bottom:16px">
+      🎲 Jedna náhodná otázka
+    </button>
+    <div class="section-title">Procvič si téma</div>
+    <div class="quiz-cats">
+      ${[['obrana','🧤','Obrana'],['pálení','🏏','Pálení'],['běh','🏃','Běh'],['pravidla','📋','Pravidla']]
+        .map(([c,ic,n])=>`<div class="quiz-cat-btn" onclick="startQuiz('${c}')">
+          <div class="quiz-cat-ic">${ic}</div>
+          <div class="quiz-cat-nm">${n}</div>
+          <div class="quiz-cat-ct">${QQ.filter(q=>q.cat===c).length} otázek</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function startQuiz(mode){
+  let pool=[];
+  if(mode==='all')pool=shuf([...QQ]).slice(0,10);
+  else if(mode==='r1')pool=shuf([...QQ]).slice(0,1);
+  else pool=shuf(QQ.filter(q=>q.cat===mode)).slice(0,8);
+  QS={pool,idx:0,lives:3,score:0,streak:0};
+  renderQ();
+  speak(pool[0].q);
+}
+function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function renderQ(){
+  if(QS.idx>=QS.pool.length){endQuiz();return}
+  const q=QS.pool[QS.idx],prog=Math.round((QS.idx/QS.pool.length)*100);
+  const isFC=q.type==='fc';
+  let opts='';
+  if(!isFC){
+    opts=`<div class="mc-opts">
+      ${q.opts.map((o,i)=>`<button class="mc-opt" id="qo${i}" onclick="answerMC(${i})">${o}</button>`).join('')}
+    </div>`;
+  } else {
+    opts=`<button class="fc-reveal-btn" onclick="fcReveal()">👁 Zobrazit odpověď</button>
+      <div class="fc-ans" id="fca">${q.ans}</div>
+      <div class="fc-rate" id="fcr" style="display:none;gap:8px">
+        <button class="fc-rate-btn fc-rate-yes" style="flex:1" onclick="fcRate(true)">✓ Věděl jsem!</button>
+        <button class="fc-rate-btn fc-rate-no" style="flex:1" onclick="fcRate(false)">✗ Nevěděl</button>
+      </div>`;
+  }
+
+  document.getElementById('page-quiz').innerHTML=`
+    <div class="quiz-top">
+      <div class="quiz-hearts">${[0,1,2].map(i=>`<span style="opacity:${i>=QS.lives?.3:1}">❤️</span>`).join('')}</div>
+      <div class="quiz-prog-wrap">
+        <div class="quiz-prog-bar"><div class="quiz-prog-fill" style="width:${prog}%"></div></div>
+        <div class="quiz-prog-lbl">${QS.idx+1} / ${QS.pool.length}</div>
+      </div>
+      ${QS.streak>=2?`<div class="quiz-streak">🔥 ${QS.streak}×</div>`:''}
+    </div>
+    <div class="qcard">
+      <div class="qcard-type">${isFC?'Přemysli a odpověz':'Vyber správnou odpověď'}</div>
+      <div class="qcard-q">${q.q}</div>
+      ${q.term?`<div class="qcard-term">${q.term}</div>`:''}
+      ${q.diag?`<div class="qcard-diag">${q.diag}</div>`:''}
+      ${opts}
+      <div class="quiz-fb" id="qfb"></div>
+      <div class="quiz-xp-pop" id="qxp"></div>
+    </div>
+    <button class="btn btn-primary btn-w" id="qnxt" style="display:none" onclick="nextQ()">Další → </button>
+    <button class="btn btn-ghost btn-w" style="margin-top:8px;font-size:.8rem;color:var(--text3)" onclick="renderQuizStart()">✕ Ukončit</button>`;
+}
+
+function answerMC(i){
+  const q=QS.pool[QS.idx],ok=i===q.ans;
+  document.querySelectorAll('.mc-opt').forEach(b=>b.disabled=true);
+  document.getElementById('qo'+q.ans).classList.add('correct');
+  if(!ok){
+    document.getElementById('qo'+i).classList.add('wrong');
+    QS.lives--;QS.streak=0;soundWrong();
+    if(QS.lives<=0){setTimeout(endQuiz,1200);return}
+  } else {
+    QS.score++;QS.streak++;soundCorrect();
+    showXP('+1 run'+(QS.streak>=3?' 🔥':''));
+  }
+  showFB(ok,q.exp);
+  document.getElementById('qnxt').style.display='flex';
+  logQZ(ok);
+}
+function fcReveal(){
+  document.getElementById('fca').classList.add('show');
+  document.querySelector('.fc-reveal-btn').style.display='none';
+  document.getElementById('fcr').style.display='flex';
+}
+function fcRate(knew){
+  if(knew){QS.score++;QS.streak++;soundCorrect();showXP('+1 run');}
+  else{QS.streak=0;soundWrong();}
+  document.getElementById('fcr').style.display='none';
+  showFB(knew,QS.pool[QS.idx].exp);
+  document.getElementById('qnxt').style.display='flex';
+  logQZ(knew);
+}
+function showFB(ok,txt){
+  const el=document.getElementById('qfb');
+  el.className='quiz-fb show '+(ok?'ok':'err');
+  el.innerHTML=(ok?'<strong>✓ Správně!</strong> ':'<strong>✗ Tak to není...</strong> ')+txt;
+}
+function showXP(txt){const el=document.getElementById('qxp');if(el){el.textContent=txt;el.classList.add('show');}}
+function nextQ(){
+  speak(QS.pool[QS.idx+1]?.q||'');
+  QS.idx++;renderQ();
+}
+function logQZ(ok){
+  if(ok){addRuns(1);}
+  const d=today();S.set('qz-'+d,(S.get('qz-'+d)||0)+1);
+  // Mark theory task done
+  setDoneToday('q-basics');
+}
+function endQuiz(){
+  soundComplete();recordDay();
+  const total=QS.pool.length,pct=Math.round((QS.score/total)*100);
+  let em='⭐';let title='Dobrá práce!';let msg=`${QS.score} z ${total} správně.`;
+  if(pct>=90){em='🏆';title='Perfektní!';msg='Jsi opravdový hráč!';}
+  else if(pct>=70){em='🎉';title='Super výkon!';msg='Skoro perfektní. Zkus znovu?';}
+
+  document.getElementById('page-quiz').innerHTML=`
+    <div class="quiz-end">
+      <span class="qe-em">${em}</span>
+      <div class="qe-title">${title}</div>
+      <div class="qe-sub">${msg}</div>
+      <div class="qe-score">+${QS.score} bodů!</div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn btn-primary" onclick="startQuiz('all')">🔄 Znovu</button>
+        <button class="btn btn-ghost" onclick="renderQuizStart()">← Menu</button>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════
+// ACTIVITY
+// ═══════════════════════════════════
+const ACTIVITIES=[
+  {id:'throw-basics',emoji:'⚾',title:'Technika hodu',desc:'Základní mechanika – krok za krokem',xp:2,
+   steps:[
+     {n:'1',t:'Grip (úchop)',txt:'Vezmi míč – 2 prsty přes švy nahoře, palec dole. Prostor mezi míčem a dlaní.'},
+     {n:'2',t:'Postoj',txt:'Bokem k cíli. Rameno s rukavicí míří na cíl.'},
+     {n:'3',t:'Nápřah',txt:'Ruka s míčem jde dozadu, loket alespoň ve výšce ramene.'},
+     {n:'4',t:'Krok a rotace',txt:'Krok přední nohou k cíli. Boky se otevřou PRVNÍ, pak ramena.'},
+     {n:'5',t:'Hod!',txt:'Prst přes míč dolů, zápěstí šlehne. Ruka pokračuje dolů k boku.'},
+     {n:'✓',t:'Opakuj 20×',txt:'Začni blízko (5 metrů). Vzdálenost přidávej jen když to funguje správně.'},
+   ]},
+  {id:'bat-stance',emoji:'🏏',title:'Postoj u pálky',desc:'Stance, grip, load, švih',xp:2,
+   steps:[
+     {n:'1',t:'Stance (postoj)',txt:'Bokem k nadhazovači. Nohy na šíři ramen. Kolena trochu pokrčená.'},
+     {n:'2',t:'Grip',txt:'Pálka v prstech, ne v dlani. Klouby zarovnané. Pálka nahoře nad zadním ramenem.'},
+     {n:'3',t:'Load (příprava)',txt:'Malé přenesení váhy dozadu – jako natahování pružiny.'},
+     {n:'4',t:'Švih!',txt:'BOKY první → pak ramena → pak pálka. Pohled na míč AŽ do kontaktu.'},
+     {n:'✓',t:'Stínové švihy',txt:'20× bez míče – pomalu a správně. Cítíš rotaci boků?'},
+   ]},
+  {id:'ready-pos',emoji:'🧤',title:'Ready pozice',desc:'Postoj polaře před každým odpalem',xp:1,
+   steps:[
+     {n:'1',t:'Nohy',txt:'Rozkročené na šíři ramen nebo víc. Váha na přední části chodidla.'},
+     {n:'2',t:'Kolena',txt:'Mírně pokrčená – jako kdybys chtěl sednout na nízkou stoličku.'},
+     {n:'3',t:'Rukavice',txt:'Dolu před tělem, otevřená, blízko země.'},
+     {n:'4',t:'Pohled',txt:'Oči na pálkaři – odkud míč odlétne.'},
+     {n:'5',t:'Ready hop!',txt:'V okamžiku nadhozu malý poskok. Tělo je v pohybu = rychlejší reakce!'},
+   ]},
+  {id:'baserun',emoji:'🏃',title:'Běh po metách',desc:'Kdy jít, kdy čekat, jak zatočit',xp:1,
+   steps:[
+     {n:'⚠️',t:'U8 pravidlo',txt:'Nesmíš opustit metu dřív než odpal. Žádné kradení met!'},
+     {n:'1',t:'Po odpalu na zem',txt:'Okamžitý sprint na další metu. Nekoukat na míč!'},
+     {n:'2',t:'Fly ball',txt:'Čekáš u mety – tag up. Pokud polař chytí, vrátíš se.'},
+     {n:'3',t:'Zatočení na 1.',txt:'Šlápneš na metu a pokračuješ DOPRAVA za ni. Pak se vrátíš.'},
+     {n:'4',t:'Signály trenéra',txt:'Ruka nahoru = STŮJ. Mávání = BĚŽ. Vždy sleduj trenéra!'},
+   ]},
+  {id:'catch-ground',emoji:'🥊',title:'Chytání grounderů',desc:'Míč po zemi – základní technika',xp:2,
+   steps:[
+     {n:'1',t:'Ready pozice',txt:'Nízko, rukavice dolu. Před nadhodém malý poskok.'},
+     {n:'2',t:'Jdi k míči!',txt:'Aktivně vybíháš – nestojíš a nečekáš.'},
+     {n:'3',t:'Pravá, levá – chyť',txt:'Pravák: pravá noha, levá noha, chyť. Oči sledují míč AŽ do rukavice.'},
+     {n:'4',t:'Obě ruce',txt:'Druhá ruka připravená na zavření rukavice. Míč k pupíku.'},
+     {n:'5',t:'Hod!',txt:'Krok pravou nohou k cíli, nápřah, hoď.'},
+   ]},
+  {id:'mental-pregame',emoji:'🧘',title:'Mentální příprava',desc:'Co dělat před zápasem nebo tréninkem',xp:1,
+   steps:[
+     {n:'💨',t:'Baseballový dech',txt:'Nádech 4 vteřiny → zadrž 2 → výdech 6 vteřin. Opakuj 5×.'},
+     {n:'🎬',t:'Vizualizace',txt:'Zavři oči. Představ si: vidíš míč letět, švihneš, míč letí daleko!'},
+     {n:'💪',t:'Sebemluva',txt:'Řekni si: "Jsem připravený. Zvládnu to. Hraju pro tým."'},
+     {n:'⚾',t:'Zaměř se na teď',txt:'Nezajímá tě minulý odpal ani skóre. Jen TENTO nadhoz.'},
+   ]},
+  {id:'agility-ladder',emoji:'🪜',title:'Atletická příprava – kroky',desc:'Koordinace a rychlost nohou',xp:2,
+   steps:[
+     {n:'1',t:'Připrav prostor',txt:'Vyznač 8 čtverečků na zemi (křídou, lepicí páskou, věcmi...)'},
+     {n:'2',t:'Oba kroky dovnitř',txt:'Vstup dvěma nohami do každého čtverce – rychle!'},
+     {n:'3',t:'Bočně',txt:'Bokem – jedna noha do čtverce, pak druhá, pak přesun dál.'},
+     {n:'4',t:'Jednou nohou',txt:'Skákej na jedné noze přes všechny čtverečky.'},
+     {n:'5',t:'Opakuj 3×',txt:'Každé kolo trochu rychleji. Klíč je přesnost, ne jen rychlost!'},
+   ]},
+  {id:'squat-jump',emoji:'🦵',title:'Výbušnost – dřepy a výskoky',desc:'Síla nohou pro sprint a akceleraci',xp:2,
+   steps:[
+     {n:'1',t:'Dřep',txt:'Nohy na šíři ramen, záda rovná, kolena nad špičkami. 10× pomalu dolů a nahoru.'},
+     {n:'2',t:'Výskok',txt:'Z dřepu – výbušně vyskočíš nahoru! Ruce pomáhají. 10× výskoků.'},
+     {n:'3',t:'Panáček',txt:'Jump jack – 20× (rozkrok+ruce nahoru → zpět). Rozehřej se!'},
+     {n:'4',t:'Výpad',txt:'Krok vpřed, koleno dolů, zpět. 5× každá noha.'},
+   ]},
+];
+
+function renderActivity(){
+  const done=getDoneToday();
+  let html=`<div class="section-title">Dnešní aktivity</div>`;
+  // Show today's physical task first
+  const todayTasks=getTodayTasks();
+  const todayPhysical=todayTasks.find(t=>['athletic','throwing','batting','catching'].includes(t.type));
+  if(todayPhysical&&todayPhysical.steps){
+    const actMatch=ACTIVITIES.find(a=>a.id.includes(todayPhysical.id.split('-')[1]))||ACTIVITIES[0];
+    html+=renderActCard(actMatch,done,true);
+  }
+  html+=`<div class="section-title">Všechna cvičení</div>`;
+  ACTIVITIES.forEach(act=>{
+    html+=renderActCard(act,done,false);
+  });
+  document.getElementById('page-activity').innerHTML=html;
+}
+
+function renderActCard(act,done,highlight){
+  const isDone=done[act.id];
+  return `<div class="act-card${isDone?' completed':''}" id="act-${act.id}" style="${highlight?'border-color:var(--hippos);':''}" >
+    <div class="act-head" onclick="toggleAct('${act.id}')">
+      <div class="act-emoji">${act.emoji}</div>
+      <div class="act-info">
+        <div class="act-title">${act.title}${highlight?' ⭐':''}</div>
+        <div class="act-desc">${act.desc}</div>
+      </div>
+      <div class="act-xp">+${act.xp} bodů</div>
+    </div>
+    <div class="act-body" id="ab-${act.id}">
+      <div class="act-steps">
+        ${act.steps.map(s=>`
+          <div class="act-step">
+            <div class="ast-n">${s.n}</div>
+            <div class="ast-text"><strong>${s.t}</strong><br>${s.txt}</div>
+          </div>`).join('')}
+      </div>
+      ${!isDone?`<button class="act-done-btn" onclick="completeAct('${act.id}',${act.xp})">
+        ✅ Hotovo! +${act.xp} bodů
+      </button>`:`<div style="text-align:center;padding:8px 16px 16px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;color:var(--green)">✓ Splněno dnes!</div>`}
+    </div>
+  </div>`;
+}
+
+function toggleAct(id){
+  const body=document.getElementById('ab-'+id);
+  body.classList.toggle('show');
+  soundTap();
+  // TTS: read the first step
+  if(body.classList.contains('show')){
+    const act=ACTIVITIES.find(a=>a.id===id);
+    if(act)speak(act.title+'. '+act.steps[0].t+'. '+act.steps[0].txt);
+  }
+}
+function completeAct(id,xp){
+  setDoneToday(id);addRuns(xp);soundComplete();
+  renderActivity();renderHome();
+}
+
+// ═══════════════════════════════════
+// BASICS
+// ═══════════════════════════════════
+const BASICS=[
+  {emoji:'⚾',bg:'#dbeafe',lv:1,title:'Co je baseball?',sub:'Základy hry pro úplné začátečníky',
+   body:`<p class="bc-p">Hrají dva týmy. Jeden <strong>útočí</strong> (pálí), druhý <strong>brání</strong> (je v poli).</p>
+   <p class="bc-p">Útočníci oběhnou všechny 4 mety a vrátí se domů = <strong>1 bod (run)</strong>!</p>
+   <p class="bc-p">Obránci se snaží útočníky <strong>vyautovat</strong>. Po 3 outech si vymění role – to je půlsměna (half-inning).</p>
+   <div class="bc-tip">💡 Baseball je jako nejrychlejší šachy na světě – pořád se něco děje!</div>`},
+  {emoji:'🏟️',bg:'#d1fae5',lv:1,title:'Hřiště a mety',sub:'Co kde je',
+   body:`<ul class="bc-list">
+   <li><strong>1., 2., 3. meta (base)</strong> – čtvercové destičky které musíš oběhnout</li>
+   <li><strong>Home plate (domácí meta)</strong> – kde stojíš při pálení, kam se vrátíš pro bod</li>
+   <li><strong>Nadhazovací pahorek (pitcher's mound)</strong> – kde stojí pitcher (v U8 trenér)</li>
+   <li><strong>Infield (vnitřní pole)</strong> – čtverec mezi metami: 1B, 2B, SS, 3B</li>
+   <li><strong>Outfield (vnější pole)</strong> – tráva za infieldem: LF, CF, RF</li>
+   </ul>`},
+  {emoji:'👥',bg:'#fce7f3',lv:1,title:'Pozice hráčů',sub:'Kdo hraje kde',
+   body:`<ul class="bc-list">
+   <li>🎯 <strong>Pitcher (P)</strong> – nadhazuje. V U8 hází trenér = coach pitch!</li>
+   <li>🥊 <strong>Catcher (C)</strong> – za home plate, chytá míče</li>
+   <li>⬛ <strong>1B, 2B, 3B</strong> – hlídají mety</li>
+   <li>🌟 <strong>Shortstop (SS)</strong> – mezi 2. a 3. metou, nejdůležitější pozice</li>
+   <li>🌿 <strong>LF, CF, RF</strong> – vnější polaři, chytají dlouhé odpaly</li>
+   </ul>`},
+  {emoji:'❌',bg:'#fee2e2',lv:1,title:'Co je out?',sub:'3 způsoby jak být vyautován',
+   body:`<ul class="bc-list">
+   <li>🔴 <strong>Strikeout</strong> – 5 neúspěšných pokusů (U8 Hroši)</li>
+   <li>🔴 <strong>Fly out</strong> – polař chytí míč přímo z letu (bez odrazu)</li>
+   <li>🔴 <strong>Force out</strong> – polař šlápne metu s míčem dřív než runner doběhne</li>
+   <li>🔴 <strong>Tag out</strong> – polař se dotkne runnera osobně míčem</li>
+   </ul>
+   <div class="bc-tip">💡 Po 3 outech jde celý tým do lavičky a vymění si role!</div>`},
+  {emoji:'🏏',bg:'#fef9c3',lv:2,title:'Pálka – jak správně švihnout',sub:'Krok za krokem',
+   body:`<div class="bc-steps">
+   <div class="bc-step"><div class="bc-snum">1</div><div class="bc-stext"><strong>Postoj (stance):</strong> Bokem k nadhazovači, nohy na šíři ramen, kolena pokrčená.</div></div>
+   <div class="bc-step"><div class="bc-snum">2</div><div class="bc-stext"><strong>Grip (úchop):</strong> Pálka v prstech, ne v dlani. Klouby zarovnané, pálka nahoře.</div></div>
+   <div class="bc-step"><div class="bc-snum">3</div><div class="bc-stext"><strong>Load:</strong> Malé přenesení váhy dozadu – jako natahování pružiny.</div></div>
+   <div class="bc-step"><div class="bc-snum">4</div><div class="bc-stext"><strong>Švih!</strong> BOKY první → pak ramena → pak pálka. Pohled na míč!</div></div>
+   <div class="bc-step"><div class="bc-snum">5</div><div class="bc-stext"><strong>Sprint!</strong> Hned po kontaktu – sprint na 1. metu. Pálku odhodíš do strany.</div></div>
+   </div>
+   <div class="bc-tip">💡 Boky první = největší síla! Zkus to doma stínovými švihy.</div>`},
+  {emoji:'💪',bg:'#ede9fe',lv:2,title:'Technika hodu',sub:'Grip, nápřah, krok, švih',
+   body:`<div class="bc-steps">
+   <div class="bc-step"><div class="bc-snum">1</div><div class="bc-stext"><strong>Grip:</strong> 2 prsty přes švy nahoře, palec dole. Mezera mezi míčem a dlaní.</div></div>
+   <div class="bc-step"><div class="bc-snum">2</div><div class="bc-stext"><strong>Postoj:</strong> Bokem k cíli. Rameno s rukavicí míří na cíl.</div></div>
+   <div class="bc-step"><div class="bc-snum">3</div><div class="bc-stext"><strong>Nápřah:</strong> Ruka dozadu, loket ve výšce ramene nebo výš.</div></div>
+   <div class="bc-step"><div class="bc-snum">4</div><div class="bc-stext"><strong>Krok + rotace:</strong> Krok vpřed k cíli. Boky se otevřou PRVNÍ.</div></div>
+   <div class="bc-step"><div class="bc-snum">5</div><div class="bc-stext"><strong>Follow-through:</strong> Ruka pokračuje dolů k boku. Zůstaň v rovnováze.</div></div>
+   </div>`},
+  {emoji:'🧤',bg:'#ecfdf5',lv:2,title:'Ready pozice a chytání',sub:'Jak stát v poli',
+   body:`<div class="bc-steps">
+   <div class="bc-step"><div class="bc-snum">1</div><div class="bc-stext"><strong>Nohy rozkročené</strong> na šíři ramen nebo víc.</div></div>
+   <div class="bc-step"><div class="bc-snum">2</div><div class="bc-stext"><strong>Kolena pokrčená</strong> – jako kdybys chtěl sednout na stoličku.</div></div>
+   <div class="bc-step"><div class="bc-snum">3</div><div class="bc-stext"><strong>Rukavice dolu</strong> před tělem – snazší pohyb oběma směry.</div></div>
+   <div class="bc-step"><div class="bc-snum">4</div><div class="bc-stext"><strong>Ready hop!</strong> Při nadhozu malý poskok – tělo je v pohybu a reaguje rychleji.</div></div>
+   </div>
+   <div class="bc-tip">💡 "Nízko, pokrčeně, v pohybu" – tato 3 slova si zapamatuj!</div>`},
+  {emoji:'🏃',bg:'#fff7ed',lv:2,title:'Běh po metách',sub:'Kdy jít, kdy čekat',
+   body:`<ul class="bc-list">
+   <li>⚠️ <strong>U8:</strong> Nesmíš krást mety – nesmíš odběhnout dřív než odpal!</li>
+   <li>▶️ <strong>Grounder:</strong> Sprint na další metu okamžitě!</li>
+   <li>✋ <strong>Fly ball:</strong> Počkáš u mety (tag up) – nejdřív musí míč spadnout nebo být chycen</li>
+   <li>🔄 <strong>1. meta:</strong> Šlápneš a pokračuješ doprava za ni – pak se vrátíš</li>
+   <li>👋 <strong>Signály trenéra:</strong> Ruka nahoru = STŮJ! Mávání = BĚŽ!</li>
+   </ul>`},
+  {emoji:'🔤',bg:'#f0f9ff',lv:1,title:'Slovníček pojmů',sub:'Anglicky + česky',
+   body:`
+   <div class="term-row"><span class="term-en">Hit</span><span class="term-cs">dobrý odpal – pálkař se dostane na metu</span></div>
+   <div class="term-row"><span class="term-en">Out</span><span class="term-cs">vyautování – hráč je vyřazen</span></div>
+   <div class="term-row"><span class="term-en">Run</span><span class="term-cs">bod – runner doběhl na home plate</span></div>
+   <div class="term-row"><span class="term-en">Inning</span><span class="term-cs">směna – obě týmy se vystřídají</span></div>
+   <div class="term-row"><span class="term-en">Grounder</span><span class="term-cs">odpal po zemi</span></div>
+   <div class="term-row"><span class="term-en">Fly ball</span><span class="term-cs">odpal do vzduchu</span></div>
+   <div class="term-row"><span class="term-en">Force out</span><span class="term-cs">out šlápnutím mety</span></div>
+   <div class="term-row"><span class="term-en">Tag out</span><span class="term-cs">out dotykem runnera</span></div>
+   <div class="term-row"><span class="term-en">Cleats / Spikes</span><span class="term-cs">baseballové tretry / spiky</span></div>
+   <div class="term-row"><span class="term-en">Dugout</span><span class="term-cs">lavička týmu</span></div>
+   <div class="term-row"><span class="term-en">Ready hop</span><span class="term-cs">poskočný krok při nadhozu</span></div>
+   `},
+];
+
+function renderBasics(){
+  const lv1=BASICS.filter(b=>b.lv===1);
+  const lv2=BASICS.filter(b=>b.lv===2);
+  let html=`<div class="section-title">Základy – pro každého</div>`;
+  html+=lv1.map(b=>bcCard(b)).join('');
+  html+=`<div class="section-title">Techniky – jak se zlepšit</div>`;
+  html+=lv2.map(b=>bcCard(b)).join('');
+  document.getElementById('page-basics').innerHTML=html;
+}
+
+function bcCard(b){
+  const i=BASICS.indexOf(b);
+  const lvLabel=b.lv===1?'Základy':'Techniky';
+  const lvClass=b.lv===1?'bc-lv-1':'bc-lv-2';
+  return `<div class="bc-card" onclick="bcToggle(${i})">
+    <div class="bc-head">
+      <div class="bc-emoji" style="background:${b.bg}">${b.emoji}</div>
+      <div class="bc-info">
+        <div class="bc-title">${b.title}</div>
+        <div class="bc-sub">${b.sub}</div>
+      </div>
+      <span class="bc-lv ${lvClass}">${lvLabel}</span>
+      <span class="bc-tog" id="bt-${i}">▾</span>
+    </div>
+    <div class="bc-body" id="bb-${i}"><div class="bc-inner">${b.body}</div></div>
+  </div>`;
+}
+function bcToggle(i){
+  document.getElementById('bb-'+i).classList.toggle('show');
+  document.getElementById('bt-'+i).classList.toggle('open');
+  soundTap();
+  const b=BASICS[i];
+  speak(b.title+'. '+b.sub);
+}
+
+// ═══════════════════════════════════
+// PWA
+// ═══════════════════════════════════
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// swipe quiz
+let _tx=0;
+document.addEventListener('touchstart',e=>{_tx=e.touches[0].clientX},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(document.getElementById('page-quiz').classList.contains('active')){
+    const dx=e.changedTouches[0].clientX-_tx;
+    const nb=document.getElementById('qnxt');
+    if(Math.abs(dx)>55&&nb&&nb.style.display!=='none')nextQ();
+  }},{passive:true});
+
+init();
+</script>
+</body>
+</html>
