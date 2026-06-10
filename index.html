@@ -40,11 +40,16 @@
   --sal:env(safe-area-inset-left,0px);
   --sar:env(safe-area-inset-right,0px);
 }
-html{height:100%;background:var(--off-white)}
+html{
+  height:100%;height:-webkit-fill-available;
+  background:var(--off-white);
+}
 body{
-  min-height:100dvh;background:var(--off-white);
-  color:var(--text);font-family:'Nunito Sans',sans-serif;
+  min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;
+  background:var(--off-white);color:var(--text);font-family:'Nunito Sans',sans-serif;
   display:flex;flex-direction:column;overflow:hidden;
+  /* iOS fix: position:fixed fills viewport correctly */
+  position:fixed;width:100%;top:0;left:0;right:0;bottom:0;
   padding-top:var(--sat);padding-left:var(--sal);padding-right:var(--sar);
 }
 
@@ -96,8 +101,14 @@ body{
 .tab-btn.active{border-bottom:2px solid var(--hippos);margin-bottom:-2px}
 
 /* ══ SCROLL ══ */
-.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
-  min-height:0;padding:16px 16px calc(20px + var(--sab))}
+.scroll{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  min-height:0;
+  /* iOS Safari scroll fix */
+  overscroll-behavior:contain;
+  padding:16px 16px calc(20px + var(--sab));
+}
 .page{display:none}.page.active{display:block}
 
 /* ══ SHARED ══ */
@@ -394,6 +405,13 @@ body{
 }
 .act-card.completed{border-color:var(--green);background:#f0fdf4}
 
+
+/* ══ ANIMACE (kamarád) ══ */
+.field-anim-wrap{display:flex;justify-content:center;margin-bottom:12px}
+.field-anim-wrap svg{max-width:200px;width:100%;border-radius:12px;background:#0a1f0a}
+.view-label-anim{font-size:.62rem;font-weight:800;letter-spacing:.08em;
+  color:var(--text3);text-transform:uppercase;text-align:center;margin-bottom:4px}
+
 /* ══ RESPONSIVE ══ */
 @media(min-width:480px){
   .mc-opts{grid-template-columns:1fr 1fr}
@@ -481,7 +499,7 @@ body{
 </div>
 
 <!-- ══ APP ══ -->
-<div id="app" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0">
+<div id="app" style="display:none;flex-direction:column;height:100%;overflow:hidden;min-height:0">
 
 <div class="hdr">
   <div class="hdr-left">
@@ -702,7 +720,7 @@ function obDone(){
 }
 
 function startApp(){
-  document.getElementById('app').style.display='flex';
+  document.getElementById('app').style.cssText='display:flex;flex-direction:column;height:100%;overflow:hidden;min-height:0';
   updateHdr();
   renderHome();renderBasics();renderActivity();renderQuizStart();
 }
@@ -947,6 +965,166 @@ function nextTraining(p){
   return null;
 }
 
+
+// ═══════════════════════════════════
+// ANIMAČNÍ ENGINE (kamarád ♥)
+// ═══════════════════════════════════
+function travelToken(x1,y1,x2,y2,color,delay){
+  const d=(delay||0).toFixed(2);
+  return `<circle cx="${x1}" cy="${y1}" r="5" fill="${color}" stroke="#0a1f0a" stroke-width="1.5" opacity="0">
+    <animate attributeName="cx" dur="2.4s" begin="${d}s" repeatCount="indefinite" calcMode="spline"
+      values="${x1};${x2};${x2};${x1}" keyTimes="0;0.42;0.9;1" keySplines="0.45 0 0.25 1;0 0 1 1;0 0 1 1"/>
+    <animate attributeName="cy" dur="2.4s" begin="${d}s" repeatCount="indefinite" calcMode="spline"
+      values="${y1};${y2};${y2};${y1}" keyTimes="0;0.42;0.9;1" keySplines="0.45 0 0.25 1;0 0 1 1;0 0 1 1"/>
+    <animate attributeName="opacity" dur="2.4s" begin="${d}s" repeatCount="indefinite"
+      values="0;1;1;1;0;0" keyTimes="0;0.05;0.42;0.82;0.9;1"/>
+  </circle>`;
+}
+function targetPulse(x,y,color,delay){
+  const d=(delay||0).toFixed(2);
+  return `<circle cx="${x}" cy="${y}" r="3" fill="none" stroke="${color}" stroke-width="2" opacity="0">
+    <animate attributeName="r" values="3;12" dur="2.4s" begin="${d}s" repeatCount="indefinite" calcMode="spline" keySplines="0.3 0 0.7 1" keyTimes="0;1"/>
+    <animate attributeName="opacity" values="0;0;0.8;0" dur="2.4s" begin="${d}s" repeatCount="indefinite" keyTimes="0;0.4;0.55;0.85"/>
+  </circle>`;
+}
+function meRing(x,y,r,color){
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${color}" stroke-width="2" opacity="0.9">
+    <animate attributeName="r" values="${r};${r+7};${r}" dur="1.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1" keyTimes="0;0.5;1"/>
+    <animate attributeName="opacity" values="0.8;0;0.8" dur="1.6s" repeatCount="indefinite" keyTimes="0;0.5;1"/>
+  </circle>`;
+}
+// Roztomilý hráč TY s kšiltovkou v Hippos barvách
+function heroArt(capColor){
+  const cap=capColor||'#3d8ef0';
+  return `<g>
+    <ellipse cx="0" cy="10" rx="5" ry="1.5" fill="#000" opacity="0.2"/>
+    <rect x="-3" y="2.5" width="2.2" height="6.5" rx="1" fill="#1a3a6b"/>
+    <rect x="0.8" y="2.5" width="2.2" height="6.5" rx="1" fill="#1a3a6b"/>
+    <rect x="-4" y="-2.5" width="8" height="7.5" rx="2.5" fill="#3d8ef0" stroke="#2a6abf" stroke-width="0.6"/>
+    <circle cx="0" cy="-6" r="4" fill="#f1c9a5" stroke="#d0a87e" stroke-width="0.5"/>
+    <path d="M -4 -6.5 A 4 4 0 0 1 4 -6.5 Z" fill="${cap}"/>
+    <path d="M 3.8 -6.3 q 2.8 0.1 3.6 1.1 l -3.6 0.3 Z" fill="${cap}"/>
+    <circle cx="-1.5" cy="-5.8" r="0.8" fill="#333"/>
+    <circle cx="1.5" cy="-5.8" r="0.8" fill="#333"/>
+    <path d="M -1.4 -3.8 Q 0 -2.8 1.4 -3.8" stroke="#b07a4a" stroke-width="0.6" fill="none"/>
+    <text x="0" y="-13" text-anchor="middle" font-size="6.5" font-weight="800" fill="${cap}" font-family="Nunito,sans-serif">TY</text>
+  </g>`;
+}
+// Míč s obličejem
+const BALL_ART=`<g>
+  <ellipse cx="0" cy="5.5" rx="4" ry="1.3" fill="#000" opacity="0.15"/>
+  <circle r="5.5" fill="#fff" stroke="#ddd" stroke-width="0.7"/>
+  <path d="M -3 -3.8 Q -5.2 0 -3 3.8" stroke="#e53935" stroke-width="0.9" fill="none"/>
+  <path d="M 3 -3.8 Q 5.2 0 3 3.8" stroke="#e53935" stroke-width="0.9" fill="none"/>
+  <circle cx="-1.5" cy="-0.5" r="0.85" fill="#333"/>
+  <circle cx="1.5" cy="-0.5" r="0.85" fill="#333"/>
+  <path d="M -1.4 1.6 Q 0 2.8 1.4 1.6" stroke="#333" stroke-width="0.7" fill="none"/>
+</g>`;
+
+function actorAnim(art,wps,T){
+  const kt=[],tr=[];let last=-1;
+  wps.forEach(w=>{let t=w.t;if(t<=last)t=last+0.001;if(t>1)t=1;last=t;kt.push(t.toFixed(4));tr.push(`${w.x} ${w.y}`);});
+  const sp=Array(Math.max(kt.length-1,1)).fill('0.42 0 0.28 1').join(';');
+  return `<g><animateTransform attributeName="transform" type="translate" dur="${T}s" repeatCount="indefinite"
+    calcMode="spline" keyTimes="${kt.join(';')}" values="${tr.join(';')}" keySplines="${sp}"/>${art}</g>`;
+}
+function resultPop(x,y,color,text,T){
+  const w=Math.max(30,text.length*5.8+10);
+  return `<g opacity="0">
+    <animate attributeName="opacity" dur="${T}s" repeatCount="indefinite" keyTimes="0;0.78;0.83;0.95;1" values="0;0;1;1;0"/>
+    <circle cx="${x}" cy="${y}" r="3" fill="none" stroke="${color}" stroke-width="2">
+      <animate attributeName="r" dur="${T}s" repeatCount="indefinite" keyTimes="0;0.78;0.88;1" values="3;3;13;13"/>
+    </circle>
+    <rect x="${x-w/2}" y="${y-24}" width="${w}" height="14" rx="4" fill="#0a1f0a" stroke="${color}" stroke-width="1.2"/>
+    <text x="${x}" y="${y-13}" text-anchor="middle" font-size="8.5" font-weight="800" fill="${color}" font-family="Nunito,sans-serif">${text}</text>
+  </g>`;
+}
+
+// Animované hřiště pro kvíz
+function fieldQAnim(o={}){
+  const W=200,H=165;
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  // Grass + infield
+  s+=`<ellipse cx="100" cy="85" rx="96" ry="76" fill="#1a3a10"/>`;
+  s+=`<polygon points="100,140 158,86 100,32 42,86" fill="#2d1e08"/>`;
+  s+=`<circle cx="100" cy="100" r="13" fill="none" stroke="#5a3a1a" stroke-width="1.2" stroke-dasharray="3,2"/>`;
+  // Bases
+  const bp={home:[100,140],first:[158,86],second:[100,32],third:[42,86]};
+  const rs=new Set(o.runners||[]);
+  for(const[n,[x,y]] of Object.entries(bp)){
+    if(n==='home'){s+=`<polygon points="${x},${y-6} ${x+6},${y} ${x},${y+4} ${x-6},${y}" fill="#d4c090" stroke="#8a7040" stroke-width="1.5"/>`;
+    }else{const num=n==='first'?1:n==='second'?2:3;const on=rs.has(num);
+      s+=`<rect x="${x-5}" y="${y-5}" width="10" height="10" rx="2" fill="${on?'#f97316':'#3d2408'}" stroke="${on?'#ea580c':'#6b4a20'}" stroke-width="1.5" transform="rotate(45,${x},${y})"/>`;
+    }
+  }
+  s+=`<circle cx="100" cy="100" r="4" fill="#5a3a1a" stroke="#8a6030" stroke-width="1"/>`;
+  // Static fielder dots
+  const fp={p:[100,100],c:[100,148],s1b:[153,98],s2b:[124,72],ss:[76,72],s3b:[48,98],lf:[40,46],cf:[100,18],rf:[160,46]};
+  for(const[k,[fx,fy]] of Object.entries(fp)){
+    if(o.myPos===k&&!o.anim)continue; // skip if animated
+    const me=(!o.anim)&&o.myPos===k;
+    if(me){
+      s+=meRing(fx,fy,9,'#3d8ef0');
+      s+=`<circle cx="${fx}" cy="${fy}" r="8" fill="#1e3a6e" stroke="#3d8ef0" stroke-width="2"/>`;
+      s+=`<text x="${fx}" y="${fy+2.5}" text-anchor="middle" font-size="5" font-weight="800" fill="#3d8ef0" font-family="Nunito,sans-serif">TY</text>`;
+    } else {
+      s+=`<circle cx="${fx}" cy="${fy}" r="4" fill="#1e3a10" stroke="#3d6e3a" stroke-width="1.2"/>`;
+      const l=k==='s1b'?'1B':k==='s2b'?'2B':k==='ss'?'SS':k==='s3b'?'3B':k.toUpperCase();
+      s+=`<text x="${fx}" y="${fy+2}" text-anchor="middle" font-size="4" fill="#4a8a4a" font-family="sans-serif">${l}</text>`;
+    }
+  }
+  // Batter
+  if(o.showBatter!==false){
+    const me=(!o.anim)&&o.myPos==='bat';
+    if(me){
+      s+=meRing(112,144,8,'#f97316');
+      s+=`<circle cx="112" cy="144" r="7" fill="#3d1a00" stroke="#f97316" stroke-width="2"/>`;
+      s+=`<text x="112" y="133" text-anchor="middle" font-size="5.5" font-weight="800" fill="#f97316" font-family="Nunito,sans-serif">TY</text>`;
+    } else {
+      s+=`<circle cx="112" cy="144" r="4" fill="#2d1a00" stroke="#6b4a20" stroke-width="1.2"/>`;
+    }
+  }
+  // Static arrows
+  for(const[i,a] of (o.arrows||[]).entries()){
+    const[x1,y1]=a.from,[x2,y2]=a.to,c=a.color||'#3d8ef0';
+    const id='qa'+Math.random().toString(36).slice(2,6);
+    const delay=i*0.4;
+    s+=`<defs><marker id="${id}" markerWidth="6" markerHeight="4" refX="4" refY="2" orient="auto"><polygon points="0 0,6 2,0 4" fill="${c}" opacity="0.5"/></marker></defs>`;
+    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="1.5" opacity="0.35" marker-end="url(#${id})"/>`;
+    s+=travelToken(x1,y1,x2,y2,c,delay);
+    s+=targetPulse(x2,y2,c,delay);
+  }
+  // Animated actors
+  if(o.anim){
+    const a=o.anim,T=a.T||5,k=a.steps.length||1,tail=a.result?0.18:0.05,pl=(1-tail)/k,mv=0.65;
+    const init=a.init||{},pos={},wp={};
+    Object.keys(init).forEach(key=>{pos[key]=init[key].slice();wp[key]=[{t:0,x:pos[key][0],y:pos[key][1]}];});
+    a.steps.forEach((moves,i)=>{
+      const st=i*pl;
+      moves.forEach(mo=>{
+        const key=mo.m;
+        if(!wp[key]){pos[key]=(mo.from||mo.to).slice();wp[key]=[{t:0,x:pos[key][0],y:pos[key][1]}];}
+        const from=pos[key].slice();
+        if(st>0.001)wp[key].push({t:st,x:from[0],y:from[1]});
+        wp[key].push({t:st+pl*mv,x:mo.to[0],y:mo.to[1]});
+        pos[key]=mo.to.slice();
+      });
+    });
+    Object.keys(wp).forEach(key=>{wp[key].push({t:1,x:pos[key][0],y:pos[key][1]});});
+    const heroArtStr=heroArt('#3d8ef0');
+    if(wp.ball) s+=actorAnim(BALL_ART,wp.ball,T);
+    if(wp.hero) s+=actorAnim(heroArtStr,wp.hero,T);
+    if(a.result) s+=resultPop(a.result.at[0],a.result.at[1],a.result.c||'#3d8ef0',a.result.text,T);
+  }
+  if(o.myRunner&&!o.anim){
+    const rp={1:[158,86],2:[100,32],3:[42,86]};const[rx,ry]=rp[o.myRunner];
+    s+=meRing(rx+8,ry-8,7,'#f97316');
+    s+=`<circle cx="${rx+8}" cy="${ry-8}" r="6" fill="#3d1a00" stroke="#f97316" stroke-width="2"/>`;
+    s+=`<text x="${rx+8}" y="${ry-4}" text-anchor="middle" font-size="4.5" font-weight="800" fill="#f97316" font-family="sans-serif">TY</text>`;
+  }
+  s+=`</svg>`;return s;
+}
+
 // ═══════════════════════════════════
 // QUIZ
 // ═══════════════════════════════════
@@ -992,56 +1170,85 @@ function fieldQ(o={}){
 const QQ=[
   {cat:'obrana',type:'mc',q:'Grounder ke mně! Prázdné mety. Kam hodím?',
    term:'<strong>Grounder</strong> = odpal po zemi. <strong>Force out</strong> = stačí šlápnout metu.',
-   diag:fieldQ({myPos:'ss',arrows:[{from:[68,70],to:[142,90],color:'#3d8ef0'}]}),
+   diag:fieldQAnim({myPos:'ss',anim:{T:4.5,
+     init:{hero:[76,74],ball:[102,103]},
+     steps:[[{m:'ball',to:[152,100]},{m:'hero',to:[82,80]}]],
+     result:{at:[152,100],c:'#ef4444',text:'OUT!'}
+   }}),
    opts:['Na 1. metu ✅','Na 2. metu','Na domácí','K pitcherovi'],ans:0,
    exp:'Pálkař musí na 1. metu – to je force situace. Fielder šlápne metu a je out!'},
   {cat:'pálení',type:'mc',q:'Jak správně švihám? Co jde první?',
    term:'<strong>Swing</strong> = švih. Správné pořadí = nejvíc síly!',
-   diag:fieldQ({myPos:'bat'}),
+   diag:fieldQAnim({myPos:'bat',showPositions:false,
+     arrows:[{from:[112,144],to:[40,80],color:'#f97316'}]}),
    opts:['Boky → ramena → pálka ✅','Ramena → boky → pálka','Pálka rovnou','Vše najednou'],ans:0,
    exp:'Boky se otočí PRVNÍ! Pak ramena, pak pálka jako bič. Zkus to!'},
   {cat:'pravidla',type:'mc',q:'Jsou 2 outy. Runner na 1. metě. Míč jde po zemi. Co runner udělá?',
    term:'<strong>2 outy</strong> = musíš riskovat. Nečekáš!',
-   diag:fieldQ({runners:[1],myRunner:1}),
+   diag:fieldQAnim({runners:[1],anim:{T:4,
+     init:{hero:[158,86]},
+     steps:[[{m:'hero',to:[102,36],via:[130,60]}]],
+     result:{at:[100,34],c:'#22c55e',text:'NA 2.!'}
+   }}),
    opts:['Okamžitě sprint na 2. ✅','Čeká','Vrací se','Stojí'],ans:0,
    exp:'Při 2 outech vždy sprintuješ! Nemůže být hůř – a třeba dáš bod!'},
   {cat:'obrana',type:'mc',q:'Fly ball ke mně! Co jako první?',
-   diag:fieldQ({myPos:'cf'}),
+   diag:fieldQAnim({myPos:'cf',anim:{T:4,
+     init:{hero:[100,20],ball:[102,148]},
+     steps:[[{m:'ball',to:[100,30],via:[100,2]},{m:'hero',to:[100,26]}]],
+     result:{at:[100,28],c:'#ef4444',text:'CHYT!'}
+   }}),
    opts:['Volám Mine! ✅','Čekám','Kouším jestli to bere kamarád','Hodím se na zem'],ans:0,
    exp:'Mine! = kamarádi se odstaví. Outfielder má přednost. Komunikace je základ!'},
   {cat:'běh',type:'fc',q:'Jsem na 3. metě. Silný odpal. Co udělám?',
    term:'<strong>3. meta → home plate</strong> = bod pro tým!',
-   diag:fieldQ({runners:[3],myRunner:3}),
-   ans:'Sprint na home plate! Šlápnu ho = BOD! Kouním na signál trenéra – mávání = jdi!',
+   diag:fieldQAnim({runners:[3],anim:{T:4,
+     init:{hero:[42,86]},
+     steps:[[{m:'hero',to:[102,138],via:[72,115]}]],
+     result:{at:[100,140],c:'#22c55e',text:'BOD! 🎉'}
+   }}),
+   ans:'Sprint na home plate! Šlápnu ho = BOD! Kouším na signál trenéra – mávání = jdi!',
    exp:'Z třetí je to nejkratší cesta domů. Při silném odpalu vždy sprint!'},
   {cat:'obrana',type:'mc',q:'Co je rozdíl: force out vs tag out?',
-   diag:fieldQ({runners:[1],myPos:'s2b'}),
+   diag:fieldQAnim({runners:[1],myPos:'s2b'}),
    opts:['Force = šlápnu metu, tag = dotknu se runnera ✅','Force = dotknu se, tag = šlápnu','Jsou stejné','Force = jen na 1. metě'],ans:0,
    exp:'Force = runner musel jít → šlápnu metu. Tag = runner nemusel jít → musím se ho dotknout!'},
   {cat:'pravidla',type:'mc',q:'U8 Hroši – kolik pokusů má pálkař?',
-   diag:fieldQ({myPos:'bat'}),
+   diag:fieldQAnim({myPos:'bat',showPositions:false}),
    opts:['5 pokusů ✅','3 strikeouty','4 bally','Neomezeno'],ans:0,
    exp:'U8 Hroši = 5 pokusů na odpálení. Žádné bally ani strikeouty jako v MLB!'},
   {cat:'běh',type:'mc',q:'Jsem na 1. metě. Grounder. Musím jít na 2.?',
    term:'<strong>Force situace</strong> = nemám jinou volbu!',
-   diag:fieldQ({runners:[1],myRunner:1,arrows:[{from:[148,76],to:[92,26],color:'#f97316'}]}),
+   diag:fieldQAnim({runners:[1],anim:{T:4,
+     init:{hero:[158,86]},
+     steps:[[{m:'hero',to:[102,36],via:[130,60]}]],
+     result:{at:[100,34],c:'#22c55e',text:'NA 2.!'}
+   }}),
    opts:['Ano, musím! Force! ✅','Ne, můžu stát','Záleží na outech','Záleží na odpalu'],ans:0,
    exp:'Force! Pálkař přichází na 1. metu – nemám kam jít. Musím na 2!'},
   {cat:'obrana',type:'fc',q:'Jak vypadá správná ready pozice polaře?',
    term:'<strong>Ready position</strong> = jsem připravený na vše!',
-   diag:fieldQ({myPos:'ss'}),
+   diag:fieldQAnim({myPos:'ss'}),
    ans:'Nohy rozkročené. Kolena pokrčená. Rukavice dolu. Pohled na pálkaře. Malý poskok při nadhozu – ready hop!',
    exp:'Nízko + pohyb = rychlá reakce. Stát rovně = pomalý fielder!'},
   {cat:'pravidla',type:'mc',q:'Rozehra v U8 – jak zastavím hru?',
-   diag:fieldQ({myPos:'p',arrows:[{from:[144,88],to:[92,96],color:'#3d8ef0'}]}),
+   diag:fieldQAnim({myPos:'p',anim:{T:4,
+     init:{ball:[152,100]},
+     steps:[[{m:'ball',to:[102,103]}]],
+     result:{at:[100,100],c:'#fbbf24',text:'STOP!'}
+   }}),
    opts:['Hodím míč k pitcherovi ✅','Chytač drží míč','Zvednu ruku','Zakřičím stop'],ans:0,
-   exp:'Speciální U8 pravidlo! Hod k nadhazovacímu kruhu = konec rozezhry. Runneri mohou dokončit metu, nesmí dál.'},
+   exp:'Speciální U8 pravidlo! Hod k nadhazovacímu kruhu = konec rozezhry.'},
   {cat:'pálení',type:'mc',q:'Co udělám hned po odpalu?',
-   diag:fieldQ({myPos:'bat',arrows:[{from:[100,133],to:[146,80],color:'#f97316'}]}),
+   diag:fieldQAnim({myPos:'bat',showPositions:false,anim:{T:3.5,
+     init:{hero:[112,144]},
+     steps:[[{m:'hero',to:[156,90],via:[135,118]}]],
+     result:{at:[157,88],c:'#22c55e',text:'SAFE!'}
+   }}),
    opts:['Sprint na 1. metu! ✅','Koukám kam letí míč','Čekám','Pomalu jdu'],ans:0,
    exp:'Okamžitý sprint! Pálku odhodit do strany. Nekoukat na míč – koukám na 1. metu!'},
   {cat:'pravidla',type:'mc',q:'Fly ball – fielder chytí přímo z letu. Co to znamená?',
-   diag:fieldQ({myPos:'rf'}),
+   diag:fieldQAnim({myPos:'rf'}),
    opts:['Pálkař je out ✅','Runneri mohou běžet','Hodí se na 1. metu','Nic'],ans:0,
    exp:'Fly out = pálkař je ihned out! Runneri musí počkat nebo se vrátit.'},
 ];
