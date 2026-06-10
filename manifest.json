@@ -2,13 +2,24 @@
   "name": "Hroši Brno – Baseball",
   "short_name": "Baseball ⚾",
   "description": "Baseballový tréninkový průvodce pro Olivera a Hippos U8",
-  "start_url": "/",
+  "start_url": "/hrosi-baseball/",
+  "scope": "/hrosi-baseball/",
   "display": "standalone",
   "background_color": "#1a3a6b",
   "theme_color": "#1a3a6b",
   "orientation": "portrait-primary",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "/hrosi-baseball/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/hrosi-baseball/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
